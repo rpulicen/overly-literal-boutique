@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, Trash2, Share2, Bell } from 'lucide-react';
+import { CheckCircle2, Trash2, Share2, Bell, Lock } from 'lucide-react';
 import { supabase } from './src/supabase';
 
 interface Task {
@@ -14,37 +14,51 @@ const taskTranslations: Record<string, Record<string, string>> = {
   'buy milk': {
     standard: 'Acquire the bovine secretion from a commercial hub.',
     pirate: 'Plunder the white nectar from the merchant\'s dock, matey!',
-    shakespeare: 'Pray, fetch the creamy yield of the kine from the market.'
+    shakespeare: 'Pray, fetch the creamy yield of the kine from the market.',
+    manager: 'PROCUREMENT OF LACTOSE IS OVERDUE. COMMENCE ACQUISITION IMMEDIATELY.',
+    cheerleader: 'OMG YOU ARE GOING TO CRUSH THAT SHOPPING TRIP! GO TEAM YOU!'
   },
   'call mom': {
     standard: 'Initiate telecommunication protocol with maternal parental unit.',
     pirate: 'Ring up the old sea witch who birthed ye, arr!',
-    shakespeare: 'Hark! Discourse with thy mother through distant communication.'
+    shakespeare: 'Hark! Discourse with thy mother through distant communication.',
+    manager: 'MATERNAL CONTACT REQUIRED. INITIATE COMMUNICATION PROTOCOL NOW.',
+    cheerleader: 'YES! TIME TO CONNECT WITH THE AMAZING PERSON WHO GAVE YOU LIFE!'
   },
   'exercise': {
     standard: 'Engage in systematic physical exertion to elevate cardiovascular function.',
     pirate: 'Swab the deck and work yer muscles, ye lazy barnacle!',
-    shakespeare: 'Moveth thy body with vigorous and healthful exertion.'
+    shakespeare: 'Moveth thy body with vigorous and healthful exertion.',
+    manager: 'PHYSICAL CONDITIONING OVERDUE. EXECUTE WORKOUT REGIMEN WITHOUT DELAY.',
+    cheerleader: 'YOU\'RE ABOUT TO ABSOLUTELY DOMINATE THIS WORKOUT! LET\'S GOOOO!'
   },
   'study': {
     standard: 'Process informational content via ocular absorption for cognitive retention.',
     pirate: 'Cram knowledge into yer noggin from them dusty scrolls!',
-    shakespeare: 'Absorbeth wisdom from the written word into thy mind.'
+    shakespeare: 'Absorbeth wisdom from the written word into thy mind.',
+    manager: 'KNOWLEDGE ACQUISITION BEHIND SCHEDULE. BEGIN STUDY SESSION STAT.',
+    cheerleader: 'YOU\'RE GOING TO ABSORB SO MUCH KNOWLEDGE! BRAIN POWER ACTIVATED!'
   },
   'sleep': {
     standard: 'Enter prolonged state of reduced consciousness on horizontal surface.',
     pirate: 'Hit the hammock and drift to the land of dreams, sailor!',
-    shakespeare: 'Surrender thyself to slumber\'s sweet embrace upon thy bed.'
+    shakespeare: 'Surrender thyself to slumber\'s sweet embrace upon thy bed.',
+    manager: 'REST CYCLE INITIATED. HORIZONTAL POSITION MANDATORY FOR RECOVERY.',
+    cheerleader: 'TIME FOR THE MOST AMAZING SLEEP EVER! YOU DESERVE THIS REST!'
   },
   'cook dinner': {
     standard: 'Apply thermal energy to consumable organic matter for evening sustenance.',
     pirate: 'Prepare the grub for tonight\'s feast, ye scurvy dog!',
-    shakespeare: 'Preparest the evening meal through culinary arts.'
+    shakespeare: 'Preparest the evening meal through culinary arts.',
+    manager: 'EVENING NUTRITION PREP REQUIRED. COMMENCE MEAL PREPARATION NOW.',
+    cheerleader: 'YOU\'RE GOING TO MAKE THE MOST INCREDIBLE DINNER! CHEF MODE ON!'
   },
   'walk dog': {
     standard: 'Escort domesticated canine on perambulatory waste elimination excursion.',
     pirate: 'Take the mangy cur out fer a stroll on the poop deck!',
-    shakespeare: 'Accompany thy hound on a leisurely promenade outdoors.'
+    shakespeare: 'Accompany thy hound on a leisurely promenade outdoors.',
+    manager: 'CANINE WASTE ELIMINATION PROTOCOL OVERDUE. EXECUTE IMMEDIATELY.',
+    cheerleader: 'YOU AND YOUR FURRY FRIEND ARE GOING TO HAVE THE BEST WALK EVER!'
   }
 };
 
@@ -65,6 +79,10 @@ function getTaskTranslation(task: string, mode: string): string {
     return `Complete the task "${task}" with proper pirate swagger, arr!`;
   } else if (mode === 'shakespeare') {
     return `Accomplisheth the task of "${task}" with utmost diligence.`;
+  } else if (mode === 'manager') {
+    return `TASK "${task.toUpperCase()}" IS PENDING. EXECUTE WITHOUT DELAY.`;
+  } else if (mode === 'cheerleader') {
+    return `YOU'RE GOING TO ABSOLUTELY CRUSH "${task}"! YOU'VE GOT THIS!`;
   } else {
     return `Execute the prescribed task: "${task}" with excessive literalism.`;
   }
@@ -81,6 +99,17 @@ function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredTask, setHoveredTask] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
+
+  const premiumModes = ['pirate', 'shakespeare', 'manager', 'cheerleader'];
+  const modeLabels: Record<string, string> = {
+    standard: 'STANDARD',
+    pirate: 'PIRATE',
+    shakespeare: 'SHAKESPEARE',
+    manager: 'BOSSY MANAGER',
+    cheerleader: 'CHEERLEADER'
+  };
 
   useEffect(() => {
     (async () => {
@@ -134,6 +163,14 @@ function App() {
     }
 
     setIsAuthenticating(false);
+  };
+
+  const handleModeClick = (selectedMode: string) => {
+    if (premiumModes.includes(selectedMode) && !isPremium) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setMode(selectedMode);
   };
 
   const addTask = async () => {
@@ -290,19 +327,29 @@ function App() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {['standard', 'pirate', 'shakespeare'].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMode(m)}
-                  className={`px-3 py-1 font-mono text-[9px] tracking-wider border transition-all duration-300 ${
-                    mode === m
-                      ? 'border-[#4FC3F7] text-[#4FC3F7]'
-                      : 'border-white/20 text-white/40 hover:text-white/60'
-                  }`}
-                >
-                  {m.toUpperCase()}
-                </button>
-              ))}
+              {['standard', 'pirate', 'shakespeare', 'manager', 'cheerleader'].map((m) => {
+                const isLocked = premiumModes.includes(m) && !isPremium;
+                return (
+                  <button
+                    key={m}
+                    onClick={() => handleModeClick(m)}
+                    className={`relative px-3 py-1 font-mono text-[9px] tracking-wider border transition-all duration-300 ${
+                      mode === m
+                        ? 'border-[#4FC3F7] text-[#4FC3F7]'
+                        : 'border-white/20 text-white/40 hover:text-white/60'
+                    } ${isLocked ? 'pr-6' : ''}`}
+                  >
+                    {modeLabels[m]}
+                    {isLocked && (
+                      <Lock
+                        size={10}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 text-[#4FC3F7]"
+                        strokeWidth={2}
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="mt-6">
@@ -403,6 +450,47 @@ function App() {
           </div>
         </div>
       </div>
+
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowUpgradeModal(false)}
+          />
+          <div className="relative bg-black/90 backdrop-blur-md border border-white/20 rounded-none max-w-md w-full p-8 shadow-2xl">
+            <div className="text-center space-y-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 border border-[#4FC3F7] rounded-none mb-4">
+                <Lock size={32} className="text-[#4FC3F7]" strokeWidth={1.5} />
+              </div>
+
+              <h2 className="text-2xl font-bold tracking-tight">Unlock the Crew</h2>
+
+              <p className="text-white/60 text-sm leading-relaxed">
+                Upgrade to Ultra for $2.99/mo and unlock all premium personalities: Pirate, Shakespeare, Bossy Manager, and Cheerleader modes.
+              </p>
+
+              <div className="space-y-3 pt-4">
+                <button
+                  onClick={() => {
+                    setIsPremium(true);
+                    setShowUpgradeModal(false);
+                  }}
+                  className="w-full bg-[#4FC3F7] text-black font-mono text-xs tracking-wider py-3 px-6 hover:bg-[#6DD5FF] transition-all duration-300 uppercase"
+                >
+                  Upgrade
+                </button>
+
+                <button
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="w-full text-white/40 hover:text-white/60 font-mono text-[10px] tracking-wider transition-colors"
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
