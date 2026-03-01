@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, Trash2 } from 'lucide-react';
+import { CheckCircle2, Trash2, Share2, Bell } from 'lucide-react';
 import { supabase } from './src/supabase';
 
 interface Task {
@@ -76,9 +76,11 @@ function App() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [mode, setMode] = useState('standard');
+  const [mood, setMood] = useState(50);
   const [taskInput, setTaskInput] = useState('');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hoveredTask, setHoveredTask] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -255,20 +257,20 @@ function App() {
 
       <div className="relative">
         <div className="border-b border-white/10">
-          <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <h1 className="text-lg sm:text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
             <button
               onClick={() => supabase.auth.signOut()}
-              className="font-mono text-[10px] tracking-wider text-white/40 hover:text-white transition-colors"
+              className="font-mono text-[9px] sm:text-[10px] tracking-wider text-white/40 hover:text-white transition-colors"
             >
               EXIT
             </button>
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-6 py-12">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -281,13 +283,13 @@ function App() {
               </div>
               <button
                 onClick={addTask}
-                className="border border-white/30 px-6 py-2 font-mono text-[10px] tracking-wider hover:bg-white hover:text-black transition-all duration-300"
+                className="border border-white/30 px-6 py-2 font-mono text-[10px] tracking-wider hover:bg-white hover:text-black transition-all duration-300 w-full sm:w-auto"
               >
                 ADD
               </button>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {['standard', 'pirate', 'shakespeare'].map((m) => (
                 <button
                   key={m}
@@ -302,44 +304,102 @@ function App() {
                 </button>
               ))}
             </div>
+
+            <div className="mt-6">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="font-mono text-[9px] tracking-wider text-white/40">MOOD</span>
+                <div className="flex-1 relative h-[2px] bg-white/10">
+                  <div
+                    className="absolute top-0 left-0 h-full bg-[#4FC3F7] transition-all duration-300"
+                    style={{ width: `${mood}%` }}
+                  />
+                </div>
+                <span className="font-mono text-[9px] tracking-wider text-[#4FC3F7]">{mood}</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={mood}
+                onChange={(e) => setMood(Number(e.target.value))}
+                className="w-full h-[2px] bg-transparent appearance-none cursor-pointer mood-slider"
+                style={{
+                  WebkitAppearance: 'none',
+                }}
+              />
+            </div>
           </div>
 
           <div className="space-y-3">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                className="border border-white/10 p-4 hover:border-white/20 transition-all group"
-              >
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <div className="flex-1">
-                    <div className="text-[11px] font-mono tracking-wider text-white/50 mb-1 uppercase">
-                      {task.original_task}
+            {tasks.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="font-mono text-[11px] tracking-wider text-white/30">
+                  The void is empty. Add a burden.
+                </p>
+              </div>
+            ) : (
+              tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className={`border border-white/10 p-3 sm:p-4 hover:border-white/20 transition-all group relative ${
+                    task.completed ? 'completed-glow' : ''
+                  }`}
+                  onMouseEnter={() => setHoveredTask(task.id)}
+                  onMouseLeave={() => setHoveredTask(null)}
+                >
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 w-full sm:w-auto">
+                      <div className="text-[10px] sm:text-[11px] font-mono tracking-wider text-white/50 mb-1 uppercase break-words">
+                        {task.original_task}
+                      </div>
+                      <div className="text-xs sm:text-sm leading-relaxed break-words">{task.translated_text}</div>
                     </div>
-                    <div className="text-sm leading-relaxed">{task.translated_text}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => toggleComplete(task)}
-                      className={`w-5 h-5 border transition-all ${
-                        task.completed
-                          ? 'border-[#4FC3F7] bg-[#4FC3F7]'
-                          : 'border-white/30 hover:border-white/50'
-                      }`}
-                    >
-                      {task.completed && (
-                        <CheckCircle2 size={12} className="text-black mx-auto" strokeWidth={3} />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      className="opacity-0 group-hover:opacity-40 hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 size={14} strokeWidth={1.5} />
-                    </button>
+                    <div className="flex items-center gap-2 self-end sm:self-start">
+                      <button
+                        onClick={() => {
+                          alert('Share feature: Generate literal breakdown meme');
+                        }}
+                        className={`transition-opacity ${
+                          hoveredTask === task.id ? 'opacity-40 hover:opacity-100' : 'opacity-0 sm:opacity-0'
+                        }`}
+                        title="Share"
+                      >
+                        <Share2 size={14} strokeWidth={1.5} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          alert('Reminder feature: Set literal reminder');
+                        }}
+                        className={`transition-opacity ${
+                          hoveredTask === task.id ? 'opacity-40 hover:opacity-100' : 'opacity-0 sm:opacity-0'
+                        }`}
+                        title="Set Reminder"
+                      >
+                        <Bell size={14} strokeWidth={1.5} />
+                      </button>
+                      <button
+                        onClick={() => toggleComplete(task)}
+                        className={`w-5 h-5 border transition-all flex-shrink-0 ${
+                          task.completed
+                            ? 'border-[#4FC3F7] bg-[#4FC3F7]'
+                            : 'border-white/30 hover:border-white/50'
+                        }`}
+                      >
+                        {task.completed && (
+                          <CheckCircle2 size={12} className="text-black mx-auto" strokeWidth={3} />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        className="opacity-0 group-hover:opacity-40 hover:opacity-100 transition-opacity flex-shrink-0"
+                      >
+                        <Trash2 size={14} strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
