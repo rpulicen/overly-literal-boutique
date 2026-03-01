@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, Trash2, Share2, Bell, Lock, Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
 import { supabase } from './src/supabase';
 
 interface Task {
@@ -10,38 +10,10 @@ interface Task {
   completed: boolean;
 }
 
-const taskTranslations: Record<string, Record<string, string>> = {
-  'buy milk': {
-    standard: 'Acquire the bovine secretion from a commercial hub.',
-    pirate: 'Plunder the white nectar from the merchant\'s dock, matey!',
-    shakespeare: 'Pray, fetch the creamy yield of the kine from the market.',
-    manager: 'PROCUREMENT OF LACTOSE IS OVERDUE. COMMENCE ACQUISITION IMMEDIATELY.',
-    cheerleader: 'OMG YOU ARE GOING TO CRUSH THAT SHOPPING TRIP! GO TEAM YOU!'
-  },
-  'call mom': {
-    standard: 'Initiate telecommunication protocol with maternal parental unit.',
-    pirate: 'Ring up the old sea witch who birthed ye, arr!',
-    shakespeare: 'Hark! Discourse with thy mother through distant communication.',
-    manager: 'MATERNAL CONTACT REQUIRED. INITIATE COMMUNICATION PROTOCOL NOW.',
-    cheerleader: 'YES! TIME TO CONNECT WITH THE AMAZING PERSON WHO GAVE YOU LIFE!'
-  },
-  'exercise': {
-    standard: 'Engage in systematic physical exertion to elevate cardiovascular function.',
-    pirate: 'Swab the deck and work yer muscles, ye lazy barnacle!',
-    shakespeare: 'Moveth thy body with vigorous and healthful exertion.',
-    manager: 'PHYSICAL CONDITIONING OVERDUE. EXECUTE WORKOUT REGIMEN WITHOUT DELAY.',
-    cheerleader: 'YOU\'RE ABOUT TO ABSOLUTELY DOMINATE THIS WORKOUT! LET\'S GOOOO!'
-  }
-};
-
 function getTaskTranslation(task: string, mode: string): string {
-  const normalizedTask = task.toLowerCase().trim();
-  if (taskTranslations[normalizedTask]) return taskTranslations[normalizedTask][mode];
-  if (mode === 'pirate') return `Complete the task "${task}" with proper pirate swagger, arr!`;
-  if (mode === 'shakespeare') return `Accomplisheth the task of "${task}" with utmost diligence.`;
-  if (mode === 'manager') return `TASK "${task.toUpperCase()}" IS PENDING. EXECUTE WITHOUT DELAY.`;
-  if (mode === 'cheerleader') return `YOU'RE GOING TO ABSOLUTELY CRUSH "${task}"! YOU'VE GOT THIS!`;
-  return `Execute the prescribed task: "${task}" with excessive literalism.`;
+  if (mode === 'pirate') return `Plunder the task "${task}" from the horizon, arr!`;
+  if (mode === 'shakespeare') return `Accomplisheth the noble deed of "${task}".`;
+  return `Execute the prescribed task: "${task}".`;
 }
 
 export default function App() {
@@ -53,31 +25,17 @@ export default function App() {
   const [taskInput, setTaskInput] = useState('');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isPremium, setIsPremium] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
   useEffect(() => {
     const initSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUser(session.user);
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
-        if (profile) {
-          setIsAdmin(profile.is_admin);
-          setIsPremium(profile.has_upgraded);
-        }
-      }
+      setUser(session?.user ?? null);
       setLoading(false);
     };
     initSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session) {
-        setIsAdmin(false);
-        setIsPremium(false);
-      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -98,13 +56,9 @@ export default function App() {
     
     if (signInErr) {
       const { data: signUp, error: signUpErr } = await supabase.auth.signUp({ email, password });
-      if (signUpErr) {
-        alert(signUpErr.message);
-      } else if (signUp.session) {
-        setUser(signUp.session.user);
-      } else {
-        alert("Check your email or try logging in again!");
-      }
+      if (signUpErr) alert(signUpErr.message);
+      else if (signUp.session) setUser(signUp.session.user);
+      else alert("Check your email or try logging in again!");
     } else {
       setUser(signIn.session.user);
     }
@@ -126,15 +80,20 @@ export default function App() {
     }
   };
 
+  const deleteTask = async (id: string) => {
+    await supabase.from('tasks').delete().eq('id', id);
+    setTasks(tasks.filter(t => t.id !== id));
+  };
+
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center font-mono text-white text-[10px]">INITIALIZING...</div>;
 
   if (!user) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
-        <h1 className="text-6xl font-bold tracking-tighter mb-10">OVERLY LITERAL</h1>
+        <h1 className="text-6xl font-bold tracking-tighter mb-10 text-center leading-none">OVERLY<br/>LITERAL</h1>
         <form onSubmit={handleAuth} className="w-full max-w-sm space-y-4">
-          <input type="email" placeholder="EMAIL" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-transparent border-b border-white/20 p-2 font-mono text-xs" />
-          <input type="password" placeholder="PASSWORD" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-transparent border-b border-white/20 p-2 font-mono text-xs" />
+          <input type="email" placeholder="EMAIL" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-transparent border-b border-white/20 p-2 font-mono text-xs uppercase focus:outline-none focus:border-[#4FC3F7]" required />
+          <input type="password" placeholder="PASSWORD" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-transparent border-b border-white/20 p-2 font-mono text-xs uppercase focus:outline-none focus:border-[#4FC3F7]" required />
           <button className="w-full border border-white/40 py-3 font-mono text-[10px] tracking-widest hover:bg-white hover:text-black transition-all">
             {isAuthenticating ? 'VERIFYING...' : 'REQUEST ACCESS'}
           </button>
@@ -148,24 +107,24 @@ export default function App() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-12">
           <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
-          <div className="flex gap-4">
-            {isAdmin && <button onClick={() => setShowAdminDashboard(!showAdminDashboard)} className="text-[#00FF41] font-mono text-[10px]">ADMIN</button>}
-            <button onClick={() => supabase.auth.signOut()} className="text-white/40 font-mono text-[10px]">EXIT</button>
-          </div>
+          <button onClick={() => supabase.auth.signOut()} className="text-white/40 font-mono text-[10px]">EXIT</button>
         </div>
 
         <div className="flex gap-4 mb-8">
-          <input value={taskInput} onChange={e => setTaskInput(e.target.value)} placeholder="Enter task..." className="flex-1 bg-transparent border-b border-white/20 py-2 font-mono text-sm" />
-          <button onClick={addTask} className="border border-white/40 px-6 font-mono text-[10px]">ADD</button>
+          <input value={taskInput} onChange={e => setTaskInput(e.target.value)} placeholder="Enter task..." className="flex-1 bg-transparent border-b border-white/20 py-2 font-mono text-sm focus:outline-none" />
+          <button onClick={addTask} className="border border-white/40 px-6 font-mono text-[10px] hover:bg-white hover:text-black transition-all">ADD</button>
         </div>
 
         <div className="space-y-4">
           {tasks.map(t => (
-            <div key={t.id} className="border border-white/10 p-4 flex justify-between items-start">
+            <div key={t.id} className="border border-white/10 p-4 flex justify-between items-start hover:border-white/30 transition-all">
               <div>
-                <div className="text-[10px] text-white/40 font-mono mb-1">{t.original_task}</div>
+                <div className="text-[10px] text-white/40 font-mono mb-1 uppercase">{t.original_task}</div>
                 <div className="text-sm">{t.translated_text}</div>
               </div>
+              <button onClick={() => deleteTask(t.id)} className="text-white/20 hover:text-white transition-colors">
+                <Trash2 size={14} />
+              </button>
             </div>
           ))}
         </div>
