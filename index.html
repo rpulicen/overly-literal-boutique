@@ -19,7 +19,7 @@
             background: linear-gradient(135deg, rgba(79, 195, 247, 0.05) 0%, rgba(11, 15, 20, 0.8) 100%);
             border: 1px solid rgba(79, 195, 247, 0.2);
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1rem 1.5rem;
             transition: all 0.3s ease;
         }
 
@@ -29,57 +29,12 @@
             box-shadow: 0 8px 24px rgba(79, 195, 247, 0.15);
         }
 
-        .step-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            padding: 0.75rem;
-            border-radius: 8px;
-            transition: background 0.2s ease;
+        .task-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            line-height: 1.6;
         }
 
-        .step-item:hover {
-            background: rgba(79, 195, 247, 0.05);
-        }
-
-        .checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #4FC3F7;
-            border-radius: 4px;
-            cursor: pointer;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .checkbox:hover {
-            background: rgba(79, 195, 247, 0.1);
-        }
-
-        .checkbox.checked {
-            background: #4FC3F7;
-        }
-
-        .checkbox.checked::after {
-            content: '✓';
-            color: #0B0F14;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .step-text {
-            flex: 1;
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.5;
-        }
-
-        .step-text.completed {
-            text-decoration: line-through;
-            opacity: 0.5;
-        }
 
         .input-bar {
             background: rgba(255, 255, 255, 0.05);
@@ -156,11 +111,6 @@
             font-weight: 600;
         }
 
-        .step-number {
-            color: #4FC3F7;
-            font-weight: 600;
-            min-width: 24px;
-        }
 
         .fade-in {
             animation: fadeIn 0.4s ease-in;
@@ -271,181 +221,72 @@
             });
         });
 
-        // Overly literal task breakdowns
-        const taskBreakdowns = {
-            'buy milk': [
-                'Locate nearest retail establishment that stocks dairy products',
-                'Calculate optimal route considering traffic patterns and fuel efficiency',
-                'Verify monetary funds are sufficient (accounting for sales tax)',
-                'Physically transport container of pasteurized bovine lactation fluid to checkout',
-                'Complete financial transaction and obtain proof of purchase receipt'
-            ],
-            'call mom': [
-                'Retrieve telecommunication device from pocket or nearby surface',
-                'Unlock device using biometric authentication or numerical password',
-                'Navigate to contacts application and locate maternal parental entry',
-                'Initiate voice transmission protocol by pressing designated button',
-                'Engage in verbal exchange of information for socially acceptable duration'
-            ],
-            'exercise': [
-                'Don clothing designed specifically for physical exertion activities',
-                'Perform cardiovascular warm-up consisting of elevated heart rate induction',
-                'Execute repetitive muscle contraction and extension movements',
-                'Monitor biological indicators including pulse rate and perspiration levels',
-                'Gradually reduce physical intensity during cool-down phase to prevent injury'
-            ],
-            'study': [
-                'Gather all relevant informational materials and writing implements',
-                'Establish distraction-free environment with optimal lighting conditions',
-                'Process written information through visual cortex and store in memory',
-                'Create condensed summaries using annotation techniques',
-                'Test knowledge retention through self-administered questioning protocol'
-            ],
-            'sleep': [
-                'Complete evening hygiene routine including dental care procedures',
-                'Adjust room temperature to optimal sleeping range (60-67°F)',
-                'Position body horizontally on cushioned sleeping surface',
-                'Reduce cognitive activity and regulate breathing patterns',
-                'Enter state of reduced consciousness for 7-9 hour duration'
-            ]
-        };
-
-        // Pirate mode breakdowns
-        const pirateBreakdowns = {
-            'buy milk': [
-                'Set sail fer the nearest merchant port what stocks dairy treasures',
-                'Chart yer course through treacherous traffic waters, matey',
-                'Count yer doubloons to ensure ye have enough pieces of eight',
-                'Hoist the white bovine liquid aboard yer vessel to the checkout',
-                'Complete the trade and claim yer proof of plunder receipt, arr!'
-            ],
-            'call mom': [
-                'Retrieve yer magical speakin\' device from yer britches pocket',
-                'Unlock the contraption with yer secret pirate code or fingerprint',
-                'Navigate to the crew roster and find yer dear mother\'s entry',
-                'Press the button to start the voice transmission across the seas',
-                'Engage in proper parley for a respectable duration, ye scallywag'
-            ],
-            'exercise': [
-                'Don yer finest swashbucklin\' attire for physical exertion',
-                'Warm up yer sea legs with some hearty cardiovascular movement',
-                'Execute repetitive muscle maneuvers like pullin\' ropes and riggin\'',
-                'Monitor yer vital signs like a ship\'s log of pulse and perspiration',
-                'Cool down gradually to avoid scurvy or other nautical injuries'
-            ],
-            'study': [
-                'Gather all yer maps, scrolls, and writin\' instruments',
-                'Establish a quiet captain\'s quarters with proper lantern light',
-                'Process the written knowledge through yer eyeballs into yer brain',
-                'Create condensed notes using proper nautical annotation techniques',
-                'Test yer knowledge retention through self-administered questionin\', arr!'
-            ],
-            'sleep': [
-                'Complete evening hygiene routine includin\' brush yer teeth and such',
-                'Adjust the cabin temperature to optimal sleepin\' range (60-67°F)',
-                'Position yer body horizontally in yer hammock or bunk',
-                'Reduce brain activity and regulate breathin\' like calm seas',
-                'Enter a state of unconsciousness for 7-9 hours, ye tired sailor'
-            ]
-        };
-
-        // Shakespeare mode breakdowns
-        const shakespeareBreakdowns = {
-            'buy milk': [
-                'Seeketh thou the nearest establishment of commerce dealing in dairy goods',
-                'Calculateth thy route most optimal, considering the passage of carriages',
-                'Verily, ensure thy purse containeth sufficient coin for this transaction',
-                'Transporteth the vessel of bovine lactation to the merchant\'s counter',
-                'Completeth the exchange of currency and obtaineth proof of purchase'
-            ],
-            'call mom': [
-                'Retrieveth thy device of distant communication from thy pocket',
-                'Unlocketh said device using thine biometric signature or secret numbers',
-                'Navigatest to thy list of acquaintances and findeth thy mother\'s entry',
-                'Initiate the transmission of voice by pressing the designated button',
-                'Engageth in verbal discourse for a duration deemed socially acceptable'
-            ],
-            'exercise': [
-                'Donneth garments appropriate for vigorous physical endeavor',
-                'Warmeth thy cardiovascular system through elevated heart induction',
-                'Executeth repetitive contractions and extensions of thy muscles',
-                'Monitoreth thy biological indicators including pulse and perspiration',
-                'Gradually reduceth physical intensity during the cooling phase'
-            ],
-            'study': [
-                'Gathereth all relevant scrolls of knowledge and writing implements',
-                'Establisheth an environment free from distraction with proper illumination',
-                'Processeth the written word through thy visual organs into memory',
-                'Createth condensed summaries using proper annotation techniques',
-                'Testest thy knowledge retention through self-administered questioning'
-            ],
-            'sleep': [
-                'Completeth thy evening hygiene ritual including dental care',
-                'Adjusteth the chamber temperature to optimal range for slumber',
-                'Positioneth thy body horizontally upon the cushioned resting surface',
-                'Reduceth cognitive activity and regulatest thy breathing patterns',
-                'Entereth a state of reduced consciousness for seven to nine hours'
-            ]
-        };
-
-        // Generic fallback for unknown tasks
-        function generateGenericBreakdown(task, mode) {
-            if (mode === 'pirate') {
-                return [
-                    `Acknowledge the existence of this task, ye landlubber: "${task}"`,
-                    'Mentally prepare yerself fer the complexity of this undertakin\', arr!',
-                    'Break down the task into smaller, more manageable pieces of eight',
-                    'Execute each piece with extreme attention like countin\' treasure',
-                    'Verify completion and document results in yer captain\'s log'
-                ];
-            } else if (mode === 'shakespeare') {
-                return [
-                    `Acknowledgeth the existence of this task: "${task}"`,
-                    'Mentally prepareth thyself for the complexity of this undertaking',
-                    'Breaketh down the task into smaller, more manageable components',
-                    'Executeth each component with extreme attention to detail',
-                    'Verifyeth completion and documenteth results for future reference'
-                ];
-            } else {
-                return [
-                    `Acknowledge the existence of the task: "${task}"`,
-                    'Mentally prepare yourself for the complexity of this undertaking',
-                    'Break down task into smaller, more manageable sub-components',
-                    'Execute each sub-component with extreme attention to detail',
-                    'Verify completion and document results for future reference'
-                ];
+        // Overly literal task translations
+        const taskTranslations = {
+            'buy milk': {
+                standard: 'Acquire the bovine secretion from a commercial hub.',
+                pirate: 'Plunder the white nectar from the merchant\'s dock, matey!',
+                shakespeare: 'Pray, fetch the creamy yield of the kine from the market.'
+            },
+            'call mom': {
+                standard: 'Initiate telecommunication protocol with maternal parental unit.',
+                pirate: 'Ring up the old sea witch who birthed ye, arr!',
+                shakespeare: 'Hark! Discourse with thy mother through distant communication.'
+            },
+            'exercise': {
+                standard: 'Engage in systematic physical exertion to elevate cardiovascular function.',
+                pirate: 'Swab the deck and work yer muscles, ye lazy barnacle!',
+                shakespeare: 'Moveth thy body with vigorous and healthful exertion.'
+            },
+            'study': {
+                standard: 'Process informational content via ocular absorption for cognitive retention.',
+                pirate: 'Cram knowledge into yer noggin from them dusty scrolls!',
+                shakespeare: 'Absorbeth wisdom from the written word into thy mind.'
+            },
+            'sleep': {
+                standard: 'Enter prolonged state of reduced consciousness on horizontal surface.',
+                pirate: 'Hit the hammock and drift to the land of dreams, sailor!',
+                shakespeare: 'Surrender thyself to slumber\'s sweet embrace upon thy bed.'
+            },
+            'cook dinner': {
+                standard: 'Apply thermal energy to consumable organic matter for evening sustenance.',
+                pirate: 'Prepare the grub for tonight\'s feast, ye scurvy dog!',
+                shakespeare: 'Preparest the evening meal through culinary arts.'
+            },
+            'walk dog': {
+                standard: 'Escort domesticated canine on perambulatory waste elimination excursion.',
+                pirate: 'Take the mangy cur out fer a stroll on the poop deck!',
+                shakespeare: 'Accompany thy hound on a leisurely promenade outdoors.'
             }
-        }
+        };
 
-        function getTaskBreakdown(task, mode) {
+        function getTaskTranslation(task, mode) {
             const normalizedTask = task.toLowerCase().trim();
-            let breakdownSource = taskBreakdowns;
-
-            // Select breakdown source based on mode
-            if (mode === 'pirate') {
-                breakdownSource = pirateBreakdowns;
-            } else if (mode === 'shakespeare') {
-                breakdownSource = shakespeareBreakdowns;
-            }
 
             // Check for exact matches
-            if (breakdownSource[normalizedTask]) {
-                return breakdownSource[normalizedTask];
+            if (taskTranslations[normalizedTask]) {
+                return taskTranslations[normalizedTask][mode];
             }
 
             // Check for partial matches
-            for (const key in breakdownSource) {
+            for (const key in taskTranslations) {
                 if (normalizedTask.includes(key) || key.includes(normalizedTask)) {
-                    return breakdownSource[key];
+                    return taskTranslations[key][mode];
                 }
             }
 
-            // Return generic breakdown
-            return generateGenericBreakdown(task, mode);
+            // Generic fallback
+            if (mode === 'pirate') {
+                return `Complete the task "${task}" with proper pirate swagger, arr!`;
+            } else if (mode === 'shakespeare') {
+                return `Accomplisheth the task of "${task}" with utmost diligence.`;
+            } else {
+                return `Execute the prescribed task: "${task}" with excessive literalism.`;
+            }
         }
 
         function createTaskCard(taskName) {
-            const steps = getTaskBreakdown(taskName, currentMode);
+            const translation = getTaskTranslation(taskName, currentMode);
             const taskId = Date.now();
 
             const taskCard = document.createElement('div');
@@ -471,46 +312,12 @@
             taskHeader.appendChild(taskTitle);
             taskHeader.appendChild(deleteButton);
 
-            const stepsContainer = document.createElement('div');
-            stepsContainer.className = 'space-y-2';
-
-            steps.forEach((step, index) => {
-                const stepItem = document.createElement('div');
-                stepItem.className = 'step-item';
-
-                const checkbox = document.createElement('div');
-                checkbox.className = 'checkbox';
-                checkbox.dataset.checked = 'false';
-
-                const stepNumber = document.createElement('div');
-                stepNumber.className = 'step-number';
-                stepNumber.textContent = `${index + 1}.`;
-
-                const stepText = document.createElement('div');
-                stepText.className = 'step-text';
-                stepText.textContent = step;
-
-                checkbox.onclick = () => {
-                    const isChecked = checkbox.dataset.checked === 'true';
-                    checkbox.dataset.checked = !isChecked;
-
-                    if (!isChecked) {
-                        checkbox.classList.add('checked');
-                        stepText.classList.add('completed');
-                    } else {
-                        checkbox.classList.remove('checked');
-                        stepText.classList.remove('completed');
-                    }
-                };
-
-                stepItem.appendChild(checkbox);
-                stepItem.appendChild(stepNumber);
-                stepItem.appendChild(stepText);
-                stepsContainer.appendChild(stepItem);
-            });
+            const taskText = document.createElement('div');
+            taskText.className = 'task-text';
+            taskText.textContent = translation;
 
             taskCard.appendChild(taskHeader);
-            taskCard.appendChild(stepsContainer);
+            taskCard.appendChild(taskText);
 
             return taskCard;
         }
