@@ -81,26 +81,38 @@ export default function App() {
 
       if (error) {
         console.error('Profile fetch error:', error);
-        setIsAdmin(false);
-        setIsPremium(false);
+        await createProfile(uid);
         return;
       }
 
       if (data) {
-        setIsAdmin(data.is_admin || false);
-        setIsPremium(data.has_upgraded || false);
+        console.log('Profile loaded:', data);
+        setIsAdmin(data.is_admin === true);
+        setIsPremium(data.has_upgraded === true);
       } else {
         await createProfile(uid);
       }
     } catch (error) {
       console.error('Profile fetch failed:', error);
-      setIsAdmin(false);
-      setIsPremium(false);
+      await createProfile(uid);
     }
   }
 
   async function createProfile(uid: string) {
     try {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', uid)
+        .maybeSingle();
+
+      if (existingProfile) {
+        console.log('Profile already exists:', existingProfile);
+        setIsAdmin(existingProfile.is_admin === true);
+        setIsPremium(existingProfile.has_upgraded === true);
+        return;
+      }
+
       const userEmail = user?.email || email;
       const { data, error } = await supabase
         .from('profiles')
@@ -114,8 +126,11 @@ export default function App() {
         .maybeSingle();
 
       if (!error && data) {
-        setIsAdmin(data.is_admin || false);
-        setIsPremium(data.has_upgraded || false);
+        console.log('Profile created:', data);
+        setIsAdmin(data.is_admin === true);
+        setIsPremium(data.has_upgraded === true);
+      } else if (error) {
+        console.error('Profile creation error:', error);
       }
     } catch (error) {
       console.error('Profile creation failed:', error);
@@ -175,9 +190,10 @@ export default function App() {
     };
     const { data, error } = await supabase.from('tasks').insert([newTask]).select().single();
     if (error) {
-      console.error(error);
-      alert("Make sure your 'tasks' table exists in Supabase!");
+      console.error('Task insert error:', error);
+      alert("Error adding task: " + error.message);
     } else if (data) {
+      console.log('Task added:', data);
       setTasks([data, ...tasks]);
       setTaskInput('');
     }
