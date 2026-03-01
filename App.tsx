@@ -104,6 +104,8 @@ function App() {
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [justUnlocked, setJustUnlocked] = useState(false);
   const [upgradeProgress, setUpgradeProgress] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
   const premiumModes = ['pirate', 'shakespeare', 'manager', 'cheerleader'];
   const modeLabels: Record<string, string> = {
@@ -118,11 +120,41 @@ function App() {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
+
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin, has_upgraded')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (profile) {
+          setIsAdmin(profile.is_admin || false);
+          setIsPremium(profile.has_upgraded || false);
+        }
+      }
+
       setLoading(false);
     })();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user || null);
+
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin, has_upgraded')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (profile) {
+          setIsAdmin(profile.is_admin || false);
+          setIsPremium(profile.has_upgraded || false);
+        }
+      } else {
+        setIsAdmin(false);
+        setIsPremium(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -190,8 +222,16 @@ function App() {
       });
     }, 30);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       clearInterval(interval);
+
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ has_upgraded: true })
+          .eq('id', user.id);
+      }
+
       setIsPremium(true);
       setIsUpgrading(false);
       setShowUpgradeModal(false);
@@ -323,16 +363,30 @@ function App() {
         <div className="border-b border-white/10">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <h1 className="text-lg sm:text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="font-mono text-[9px] sm:text-[10px] tracking-wider text-white/40 hover:text-white transition-colors"
-            >
-              EXIT
-            </button>
+            <div className="flex items-center gap-4">
+              {isAdmin && (
+                <button
+                  onClick={() => setShowAdminDashboard(!showAdminDashboard)}
+                  className="font-mono text-[9px] sm:text-[10px] tracking-wider text-[#00FF41] hover:text-[#4FC3F7] transition-colors"
+                >
+                  ADMIN
+                </button>
+              )}
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="font-mono text-[9px] sm:text-[10px] tracking-wider text-white/40 hover:text-white transition-colors"
+              >
+                EXIT
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          {showAdminDashboard ? (
+            <AdminDashboard onClose={() => setShowAdminDashboard(false)} />
+          ) : (
+          <>
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
               <div className="flex-1 relative">
@@ -480,8 +534,6 @@ function App() {
               })
             )}
           </div>
-        </div>
-      </div>
 
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -537,6 +589,121 @@ function App() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      </>
+      )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminDashboard({ onClose }: { onClose: () => void }) {
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [totalUpgrades, setTotalUpgrades] = useState(0);
+  const [modeAnalytics, setModeAnalytics] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadAdminData();
+  }, []);
+
+  const loadAdminData = async () => {
+    const { data: tasksData } = await supabase
+      .from('tasks')
+      .select('translation_mode');
+
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('has_upgraded')
+      .eq('has_upgraded', true);
+
+    if (tasksData) {
+      setTotalTasks(tasksData.length);
+
+      const modes: Record<string, number> = {};
+      tasksData.forEach((task) => {
+        const mode = task.translation_mode || 'standard';
+        modes[mode] = (modes[mode] || 0) + 1;
+      });
+      setModeAnalytics(modes);
+    }
+
+    if (profilesData) {
+      setTotalUpgrades(profilesData.length);
+    }
+
+    setLoading(false);
+  };
+
+  const revenue = totalUpgrades * 2.99;
+
+  const modeLabels: Record<string, string> = {
+    standard: 'STANDARD',
+    pirate: 'PIRATE',
+    shakespeare: 'SHAKESPEARE',
+    manager: 'BOSSY MANAGER',
+    cheerleader: 'CHEERLEADER'
+  };
+
+  return (
+    <div className="min-h-[70vh]">
+      <div className="mb-8 flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tighter text-[#00FF41] font-mono">ADMIN VAULT</h2>
+        <button
+          onClick={onClose}
+          className="font-mono text-[10px] tracking-wider text-white/40 hover:text-white transition-colors"
+        >
+          CLOSE
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-center text-white/40 font-mono text-sm">Loading...</div>
+      ) : (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="border border-[#00FF41]/30 p-6 bg-[#00FF41]/5">
+              <div className="font-mono text-[10px] tracking-wider text-[#00FF41]/60 mb-2">SYSTEM BURDENS</div>
+              <div className="font-mono text-4xl text-[#00FF41] tracking-tight">{totalTasks}</div>
+            </div>
+
+            <div className="border border-[#4FC3F7]/30 p-6 bg-[#4FC3F7]/5">
+              <div className="font-mono text-[10px] tracking-wider text-[#4FC3F7]/60 mb-2">ULTRA UPGRADES</div>
+              <div className="font-mono text-4xl text-[#4FC3F7] tracking-tight">{totalUpgrades}</div>
+            </div>
+
+            <div className="border border-[#00FF41]/30 p-6 bg-[#00FF41]/5">
+              <div className="font-mono text-[10px] tracking-wider text-[#00FF41]/60 mb-2">ULTRA REVENUE</div>
+              <div className="font-mono text-4xl text-[#00FF41] tracking-tight">${revenue.toFixed(2)}</div>
+            </div>
+          </div>
+
+          <div className="border border-white/10 p-6">
+            <div className="font-mono text-[11px] tracking-wider text-white/60 mb-6">MODE ANALYTICS</div>
+            <div className="space-y-4">
+              {Object.entries(modeAnalytics)
+                .sort((a, b) => b[1] - a[1])
+                .map(([mode, count]) => {
+                  const percentage = totalTasks > 0 ? ((count / totalTasks) * 100).toFixed(1) : '0.0';
+                  return (
+                    <div key={mode} className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <span className="font-mono text-xs text-white/80 w-32">{modeLabels[mode] || mode.toUpperCase()}</span>
+                        <div className="flex-1 h-2 bg-white/10 overflow-hidden">
+                          <div
+                            className="h-full bg-[#00FF41]"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="font-mono text-xs text-[#00FF41] ml-4 w-16 text-right">{count} ({percentage}%)</span>
+                    </div>
+                  );
+                })}
+            </div>
           </div>
         </div>
       )}
