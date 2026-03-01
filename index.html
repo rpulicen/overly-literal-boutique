@@ -7,35 +7,129 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        @keyframes boot-flicker {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        @keyframes boot-scan {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(100vh); }
+        }
         @keyframes progress-fill {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        @keyframes blue-line-expand {
+            from { width: 12px; }
+            to { width: 100vw; }
+        }
+        @keyframes redacted-reveal {
             from { width: 0%; }
             to { width: 100%; }
         }
         .animate-progress-boutique {
             animation: progress-fill 3s linear forwards;
         }
-        body { background-color: black; color: white; font-family: 'Inter', sans-serif; }
+        .animate-blue-expand {
+            animation: blue-line-expand 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .boot-cursor::after {
+            content: '█';
+            animation: boot-flicker 0.8s infinite;
+        }
+        .boot-scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to bottom, transparent, rgba(0, 255, 0, 0.5), transparent);
+            animation: boot-scan 2s linear infinite;
+            pointer-events: none;
+        }
+        .redacted-price {
+            position: relative;
+            display: inline-block;
+        }
+        .redacted-bar {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: white;
+            transform: translateY(-50%);
+            transition: width 0.3s ease;
+        }
+        .redacted-price:hover .redacted-bar {
+            width: 100%;
+        }
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #bootScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem;
+        }
+        #productGrid {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #productGrid.visible {
+            opacity: 1;
+        }
+        .product-card {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+        .product-card:hover {
+            border-color: rgba(0, 122, 255, 0.5);
+        }
     </style>
 </head>
 <body>
-    <div id="root">
+    <div id="bootScreen">
+        <div class="boot-scanline"></div>
+        <div class="max-w-2xl mx-auto w-full space-y-2 font-mono text-xs text-green-400">
+            <div class="boot-line"><span class="boot-cursor">SYSTEM CHECK INITIATED</span></div>
+            <div class="boot-line hidden"><span>LOADING BOUTIQUE MODULES............... OK</span></div>
+            <div class="boot-line hidden"><span>VERIFYING PRODUCT CATALOG.............. OK</span></div>
+            <div class="boot-line hidden"><span>INITIALIZING LITERAL INTERFACE......... OK</span></div>
+            <div class="boot-line hidden"><span>CHECKING OVERLY PRECISE SPECIFICATIONS. OK</span></div>
+            <div class="boot-line hidden"><span>SYSTEM READY</span></div>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
         <div class="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden">
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center_bottom,#1a1a1a_0%,#000000_50%)] pointer-events-none"></div>
-            
+
             <header class="relative text-center mb-16">
                 <h1 class="text-6xl md:text-8xl font-bold tracking-tighter mb-2 leading-none uppercase">
                     OVERLY<br/>LITERAL
                 </h1>
-                <div class="h-px w-12 bg-[#007AFF] mx-auto mt-8"></div>
+                <div id="blueLine" class="h-px w-12 bg-[#007AFF] mx-auto mt-8"></div>
             </header>
 
-            <div class="relative w-full max-w-md">
+            <div id="accessSection" class="relative w-full max-w-md mb-16">
                 <form id="accessForm" class="space-y-6">
-                    <input 
-                        type="email" 
-                        placeholder="ENTER EMAIL ADDRESS" 
+                    <input
+                        id="emailInput"
+                        type="email"
+                        placeholder="ENTER EMAIL ADDRESS"
                         class="w-full bg-transparent border-b border-white/20 py-3 focus:outline-none focus:border-[#007AFF] transition-colors font-mono text-sm tracking-widest uppercase"
-                        required 
+                        required
                     />
                     <button type="submit" class="w-full border border-white/30 py-4 font-mono text-[11px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-300 uppercase">
                         Request Access
@@ -54,9 +148,83 @@
                 <div id="successState" class="hidden text-center space-y-4">
                     <div class="text-[#007AFF] text-4xl mb-6">✓</div>
                     <p class="font-mono text-[11px] tracking-[0.3em] leading-relaxed uppercase">
-                        Access Requested.<br/>
-                        We will contact you shortly.
+                        Access Granted.<br/>
+                        Scroll to browse catalog.
                     </p>
+                </div>
+            </div>
+
+            <div id="productGrid" class="relative w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
+                <div class="product-card">
+                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
+                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Actual T-Shirt</h3>
+                    <p class="text-white/60 text-sm mb-4">A shirt. Made of cotton. Literally what you think it is.</p>
+                    <div class="redacted-price">
+                        <span class="font-mono text-sm">$29.99</span>
+                        <div class="redacted-bar"></div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
+                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Real Denim Jeans</h3>
+                    <p class="text-white/60 text-sm mb-4">Pants. Blue. Two legs. Pockets included as described.</p>
+                    <div class="redacted-price">
+                        <span class="font-mono text-sm">$89.99</span>
+                        <div class="redacted-bar"></div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
+                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Honest Sneakers</h3>
+                    <p class="text-white/60 text-sm mb-4">Footwear. Laces. Rubber sole. Exactly as labeled.</p>
+                    <div class="redacted-price">
+                        <span class="font-mono text-sm">$119.99</span>
+                        <div class="redacted-bar"></div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
+                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Factual Jacket</h3>
+                    <p class="text-white/60 text-sm mb-4">Outer layer. Zipper closure. Keeps you warm.</p>
+                    <div class="redacted-price">
+                        <span class="font-mono text-sm">$199.99</span>
+                        <div class="redacted-bar"></div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
+                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Genuine Hat</h3>
+                    <p class="text-white/60 text-sm mb-4">Head covering. Cotton blend. Protects from sun.</p>
+                    <div class="redacted-price">
+                        <span class="font-mono text-sm">$34.99</span>
+                        <div class="redacted-bar"></div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
+                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The True Socks</h3>
+                    <p class="text-white/60 text-sm mb-4">Foot garments. Sold in pairs. Cotton. No surprises.</p>
+                    <div class="redacted-price">
+                        <span class="font-mono text-sm">$14.99</span>
+                        <div class="redacted-bar"></div>
+                    </div>
                 </div>
             </div>
 
@@ -69,18 +237,50 @@
     </div>
 
     <script>
+        // Boot sequence
+        const bootScreen = document.getElementById('bootScreen');
+        const mainApp = document.getElementById('mainApp');
+        const bootLines = document.querySelectorAll('.boot-line');
+
+        let currentLine = 0;
+        const bootInterval = setInterval(() => {
+            if (currentLine < bootLines.length) {
+                bootLines[currentLine].classList.remove('hidden');
+                currentLine++;
+            } else {
+                clearInterval(bootInterval);
+                setTimeout(() => {
+                    bootScreen.style.display = 'none';
+                    mainApp.classList.remove('hidden');
+                }, 500);
+            }
+        }, 400);
+
+        // Form handling
         const form = document.getElementById('accessForm');
         const loading = document.getElementById('loadingState');
         const success = document.getElementById('successState');
+        const productGrid = document.getElementById('productGrid');
+        const blueLine = document.getElementById('blueLine');
+        const emailInput = document.getElementById('emailInput');
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
+
+            // Trigger blue line expansion
+            blueLine.classList.add('animate-blue-expand');
+
             form.classList.add('hidden');
             loading.classList.remove('hidden');
-            
+
             setTimeout(() => {
                 loading.classList.add('hidden');
                 success.classList.remove('hidden');
+
+                // Show product grid
+                setTimeout(() => {
+                    productGrid.classList.add('visible');
+                }, 500);
             }, 3000);
         });
     </script>
