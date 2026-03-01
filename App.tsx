@@ -32,28 +32,82 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setUser(session.user);
-        fetchProfile(session.user.id);
-      }
-      setLoading(false);
-    });
+    checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      setIsAuthenticating(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user);
+        await fetchProfile(session.user.id);
+        setIsAuthenticating(false);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setIsAdmin(false);
+        setIsPremium(false);
+        setTasks([]);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  async function checkSession() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        await fetchProfile(session.user.id);
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function fetchProfile(uid: string) {
-    const { data } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
-    if (data) {
-      setIsAdmin(data.is_admin);
-      setIsPremium(data.has_upgraded);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', uid)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Profile fetch error:', error);
+        return;
+      }
+
+      if (data) {
+        setIsAdmin(data.is_admin || false);
+        setIsPremium(data.has_upgraded || false);
+      } else {
+        await createProfile(uid);
+      }
+    } catch (error) {
+      console.error('Profile fetch failed:', error);
+    }
+  }
+
+  async function createProfile(uid: string) {
+    try {
+      const userEmail = user?.email || email;
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert([{
+          id: uid,
+          email: userEmail,
+          is_admin: false,
+          has_upgraded: false
+        }])
+        .select()
+        .maybeSingle();
+
+      if (!error && data) {
+        setIsAdmin(data.is_admin || false);
+        setIsPremium(data.has_upgraded || false);
+      }
+    } catch (error) {
+      console.error('Profile creation failed:', error);
     }
   }
 
@@ -69,17 +123,33 @@ export default function App() {
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
     setIsAuthenticating(true);
-    const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (signInErr) {
-      const { error: signUpErr } = await supabase.auth.signUp({ email, password });
-      if (signUpErr) {
-        alert(signUpErr.message);
-        setIsAuthenticating(false);
-      } else {
-        alert("Check your email for a verification link!");
-        setIsAuthenticating(false);
+
+    try {
+      const { data, error: signInErr } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (signInErr) {
+        const { error: signUpErr } = await supabase.auth.signUp({
+          email,
+          password
+        });
+
+        if (signUpErr) {
+          alert(signUpErr.message);
+          setIsAuthenticating(false);
+        } else {
+          alert("Account created! You can now sign in.");
+          setIsAuthenticating(false);
+        }
+      } else if (data.user) {
+        await fetchProfile(data.user.id);
       }
+    } catch (error) {
+      console.error('Auth error:', error);
+      alert('Authentication failed. Please try again.');
+      setIsAuthenticating(false);
     }
   }
 
