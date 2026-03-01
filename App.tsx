@@ -106,6 +106,10 @@ function App() {
   const [upgradeProgress, setUpgradeProgress] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
 
   const premiumModes = ['pirate', 'shakespeare', 'manager', 'cheerleader'];
   const modeLabels: Record<string, string> = {
@@ -285,6 +289,31 @@ function App() {
     if (!error) {
       setTasks(tasks.filter(t => t.id !== taskId));
     }
+  };
+
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackText.trim() || !user) return;
+
+    setFeedbackSubmitting(true);
+
+    const { error } = await supabase
+      .from('suggestions')
+      .insert({
+        user_id: user.id,
+        suggestion_text: feedbackText.trim()
+      });
+
+    if (!error) {
+      setFeedbackSuccess(true);
+      setFeedbackText('');
+
+      setTimeout(() => {
+        setFeedbackSuccess(false);
+        setShowFeedbackModal(false);
+      }, 1500);
+    }
+
+    setFeedbackSubmitting(false);
   };
 
   if (loading) {
@@ -596,14 +625,82 @@ function App() {
       )}
         </div>
       </div>
+
+      {user && (
+        <button
+          onClick={() => setShowFeedbackModal(true)}
+          className="fixed bottom-6 right-6 border border-[#4FC3F7] text-[#4FC3F7] px-4 py-2 font-mono text-[10px] tracking-wider hover:bg-[#4FC3F7]/10 transition-all duration-300"
+        >
+          FEEDBACK
+        </button>
+      )}
+
+      {showFeedbackModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => !feedbackSubmitting && setShowFeedbackModal(false)}
+          />
+
+          <div className="relative bg-black/90 backdrop-blur-md border border-white/20 p-8 w-full max-w-md">
+            {feedbackSuccess ? (
+              <div className="text-center space-y-4">
+                <CheckCircle2 className="mx-auto text-[#00FF41]" size={48} strokeWidth={1.5} />
+                <p className="font-mono text-sm tracking-wider text-[#00FF41]">SUGGESTION LOGGED</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <h3 className="font-mono text-sm tracking-wider text-white/80">
+                  What personality should the bot learn next?
+                </h3>
+
+                <input
+                  type="text"
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleFeedbackSubmit()}
+                  placeholder="e.g., 'Valley Girl', 'Robot', 'Detective'..."
+                  className="w-full bg-transparent border-b border-white/20 py-3 focus:outline-none focus:border-[#4FC3F7] transition-colors text-sm placeholder:text-white/30"
+                  disabled={feedbackSubmitting}
+                />
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleFeedbackSubmit}
+                    disabled={feedbackSubmitting || !feedbackText.trim()}
+                    className="flex-1 bg-[#4FC3F7] text-black font-mono text-xs tracking-wider py-3 px-6 hover:bg-[#6DD5FF] transition-all duration-300 uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {feedbackSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
+                  </button>
+
+                  <button
+                    onClick={() => setShowFeedbackModal(false)}
+                    disabled={feedbackSubmitting}
+                    className="px-6 text-white/40 hover:text-white/60 font-mono text-xs tracking-wider transition-colors disabled:opacity-50"
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+interface Suggestion {
+  id: string;
+  suggestion_text: string;
+  created_at: string;
 }
 
 function AdminDashboard({ onClose }: { onClose: () => void }) {
   const [totalTasks, setTotalTasks] = useState(0);
   const [totalUpgrades, setTotalUpgrades] = useState(0);
   const [modeAnalytics, setModeAnalytics] = useState<Record<string, number>>({});
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -620,6 +717,11 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
       .select('has_upgraded')
       .eq('has_upgraded', true);
 
+    const { data: suggestionsData } = await supabase
+      .from('suggestions')
+      .select('id, suggestion_text, created_at')
+      .order('created_at', { ascending: false });
+
     if (tasksData) {
       setTotalTasks(tasksData.length);
 
@@ -633,6 +735,10 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
 
     if (profilesData) {
       setTotalUpgrades(profilesData.length);
+    }
+
+    if (suggestionsData) {
+      setSuggestions(suggestionsData);
     }
 
     setLoading(false);
@@ -704,6 +810,26 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
                   );
                 })}
             </div>
+          </div>
+
+          <div className="border border-white/10 p-6">
+            <div className="font-mono text-[11px] tracking-wider text-white/60 mb-6">USER SUGGESTIONS</div>
+            {suggestions.length === 0 ? (
+              <div className="text-center text-white/30 font-mono text-xs py-8">
+                No suggestions yet
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {suggestions.map((suggestion) => (
+                  <div key={suggestion.id} className="border-l-2 border-[#4FC3F7]/30 pl-4 py-2">
+                    <p className="font-mono text-sm text-white/80">{suggestion.suggestion_text}</p>
+                    <p className="font-mono text-[9px] text-white/40 mt-1">
+                      {new Date(suggestion.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
