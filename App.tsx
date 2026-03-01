@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, LogOut, Loader2, Lock } from 'lucide-react';
+import { Trash2, Plus, LogOut, Loader2, Lock, Shield } from 'lucide-react';
 import { supabase } from './src/supabase';
 
 interface Task {
@@ -8,6 +8,84 @@ interface Task {
   translation_mode: string;
   translated_text: string;
   completed: boolean;
+}
+
+interface Profile {
+  id: string;
+  email: string;
+  is_admin: boolean;
+  has_upgraded: boolean;
+  created_at: string;
+}
+
+function AdminPanel() {
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadProfiles();
+  }, []);
+
+  async function loadProfiles() {
+    setLoading(true);
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (data) setProfiles(data);
+    setLoading(false);
+  }
+
+  async function togglePremium(profileId: string, currentValue: boolean) {
+    await supabase
+      .from('profiles')
+      .update({ has_upgraded: !currentValue })
+      .eq('id', profileId);
+    loadProfiles();
+  }
+
+  async function toggleAdmin(profileId: string, currentValue: boolean) {
+    await supabase
+      .from('profiles')
+      .update({ is_admin: !currentValue })
+      .eq('id', profileId);
+    loadProfiles();
+  }
+
+  if (loading) return <div className="border border-[#00FF41] p-6 mb-8 font-mono text-xs text-white/50">Loading users...</div>;
+
+  return (
+    <div className="border border-[#00FF41] p-6 mb-8">
+      <div className="flex items-center gap-2 mb-6">
+        <Shield size={16} className="text-[#00FF41]" />
+        <h2 className="font-mono text-xs text-[#00FF41] tracking-widest">ADMIN CONTROL PANEL</h2>
+      </div>
+      <div className="space-y-3">
+        {profiles.map(profile => (
+          <div key={profile.id} className="flex items-center justify-between border border-white/10 p-3">
+            <div className="flex-1">
+              <div className="font-mono text-xs text-white">{profile.email}</div>
+              <div className="font-mono text-[9px] text-white/30 mt-1">{profile.id}</div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => togglePremium(profile.id, profile.has_upgraded)}
+                className={`px-3 py-1 text-[9px] font-mono border transition-all ${profile.has_upgraded ? 'border-yellow-500 text-yellow-500' : 'border-white/20 text-white/30'}`}
+              >
+                PREMIUM
+              </button>
+              <button
+                onClick={() => toggleAdmin(profile.id, profile.is_admin)}
+                className={`px-3 py-1 text-[9px] font-mono border transition-all ${profile.is_admin ? 'border-[#00FF41] text-[#00FF41]' : 'border-white/20 text-white/30'}`}
+              >
+                ADMIN
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function getTaskTranslation(task: string, mode: string): string {
@@ -30,6 +108,7 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isPremium, setIsPremium] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   useEffect(() => {
     checkSession();
@@ -222,7 +301,7 @@ export default function App() {
         <div className="flex justify-between items-center mb-16">
           <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
           <div className="flex gap-4">
-            {isAdmin && <span className="text-[#00FF41] font-mono text-[10px] border border-[#00FF41] px-2 py-1">ADMIN</span>}
+            {isAdmin && <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="text-[#00FF41] font-mono text-[10px] border border-[#00FF41] px-2 py-1 hover:bg-[#00FF41] hover:text-black transition-all">ADMIN</button>}
             <button onClick={() => supabase.auth.signOut()} className="text-white/30 hover:text-white"><LogOut size={20} /></button>
           </div>
         </div>
@@ -238,6 +317,8 @@ export default function App() {
             );
           })}
         </div>
+
+        {showAdminPanel && <AdminPanel />}
 
         <div className="flex gap-4 mb-16">
           <input value={taskInput} onChange={e => setTaskInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTask()} placeholder="Describe the burden..." className="flex-1 bg-transparent border-b border-white/20 py-2 font-mono text-sm focus:outline-none" />
