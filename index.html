@@ -176,19 +176,59 @@
                 transform: translateY(0);
             }
         }
+
+        .mode-switcher {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.25rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mode-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .mode-button:hover {
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .mode-button.active {
+            background: #4FC3F7;
+            color: #0B0F14;
+        }
     </style>
 </head>
 <body>
     <div class="min-h-screen px-6 py-12">
         <div class="max-w-4xl mx-auto">
             <!-- Hero Section -->
-            <header class="text-center mb-16">
+            <header class="text-center mb-12">
                 <h1 class="text-6xl md:text-7xl font-bold tracking-tight mb-4 leading-tight">
                     OVERLY LITERAL
                 </h1>
-                <p class="text-lg text-white/60 tracking-wide">
+                <p class="text-lg text-white/60 tracking-wide mb-6">
                     Tasks Taken Way Too Literally 😏
                 </p>
+
+                <!-- Mode Switcher -->
+                <div class="flex justify-center">
+                    <div class="mode-switcher">
+                        <button class="mode-button active" data-mode="standard">Standard</button>
+                        <button class="mode-button" data-mode="pirate">Pirate</button>
+                        <button class="mode-button" data-mode="shakespeare">Shakespeare</button>
+                    </div>
+                </div>
             </header>
 
             <!-- Input Section -->
@@ -218,6 +258,18 @@
         const taskInput = document.getElementById('taskInput');
         const addButton = document.getElementById('addButton');
         const tasksContainer = document.getElementById('tasksContainer');
+        const modeButtons = document.querySelectorAll('.mode-button');
+
+        let currentMode = 'standard';
+
+        // Mode switcher logic
+        modeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentMode = button.dataset.mode;
+            });
+        });
 
         // Overly literal task breakdowns
         const taskBreakdowns = {
@@ -258,38 +310,142 @@
             ]
         };
 
+        // Pirate mode breakdowns
+        const pirateBreakdowns = {
+            'buy milk': [
+                'Set sail fer the nearest merchant port what stocks dairy treasures',
+                'Chart yer course through treacherous traffic waters, matey',
+                'Count yer doubloons to ensure ye have enough pieces of eight',
+                'Hoist the white bovine liquid aboard yer vessel to the checkout',
+                'Complete the trade and claim yer proof of plunder receipt, arr!'
+            ],
+            'call mom': [
+                'Retrieve yer magical speakin\' device from yer britches pocket',
+                'Unlock the contraption with yer secret pirate code or fingerprint',
+                'Navigate to the crew roster and find yer dear mother\'s entry',
+                'Press the button to start the voice transmission across the seas',
+                'Engage in proper parley for a respectable duration, ye scallywag'
+            ],
+            'exercise': [
+                'Don yer finest swashbucklin\' attire for physical exertion',
+                'Warm up yer sea legs with some hearty cardiovascular movement',
+                'Execute repetitive muscle maneuvers like pullin\' ropes and riggin\'',
+                'Monitor yer vital signs like a ship\'s log of pulse and perspiration',
+                'Cool down gradually to avoid scurvy or other nautical injuries'
+            ],
+            'study': [
+                'Gather all yer maps, scrolls, and writin\' instruments',
+                'Establish a quiet captain\'s quarters with proper lantern light',
+                'Process the written knowledge through yer eyeballs into yer brain',
+                'Create condensed notes using proper nautical annotation techniques',
+                'Test yer knowledge retention through self-administered questionin\', arr!'
+            ],
+            'sleep': [
+                'Complete evening hygiene routine includin\' brush yer teeth and such',
+                'Adjust the cabin temperature to optimal sleepin\' range (60-67°F)',
+                'Position yer body horizontally in yer hammock or bunk',
+                'Reduce brain activity and regulate breathin\' like calm seas',
+                'Enter a state of unconsciousness for 7-9 hours, ye tired sailor'
+            ]
+        };
+
+        // Shakespeare mode breakdowns
+        const shakespeareBreakdowns = {
+            'buy milk': [
+                'Seeketh thou the nearest establishment of commerce dealing in dairy goods',
+                'Calculateth thy route most optimal, considering the passage of carriages',
+                'Verily, ensure thy purse containeth sufficient coin for this transaction',
+                'Transporteth the vessel of bovine lactation to the merchant\'s counter',
+                'Completeth the exchange of currency and obtaineth proof of purchase'
+            ],
+            'call mom': [
+                'Retrieveth thy device of distant communication from thy pocket',
+                'Unlocketh said device using thine biometric signature or secret numbers',
+                'Navigatest to thy list of acquaintances and findeth thy mother\'s entry',
+                'Initiate the transmission of voice by pressing the designated button',
+                'Engageth in verbal discourse for a duration deemed socially acceptable'
+            ],
+            'exercise': [
+                'Donneth garments appropriate for vigorous physical endeavor',
+                'Warmeth thy cardiovascular system through elevated heart induction',
+                'Executeth repetitive contractions and extensions of thy muscles',
+                'Monitoreth thy biological indicators including pulse and perspiration',
+                'Gradually reduceth physical intensity during the cooling phase'
+            ],
+            'study': [
+                'Gathereth all relevant scrolls of knowledge and writing implements',
+                'Establisheth an environment free from distraction with proper illumination',
+                'Processeth the written word through thy visual organs into memory',
+                'Createth condensed summaries using proper annotation techniques',
+                'Testest thy knowledge retention through self-administered questioning'
+            ],
+            'sleep': [
+                'Completeth thy evening hygiene ritual including dental care',
+                'Adjusteth the chamber temperature to optimal range for slumber',
+                'Positioneth thy body horizontally upon the cushioned resting surface',
+                'Reduceth cognitive activity and regulatest thy breathing patterns',
+                'Entereth a state of reduced consciousness for seven to nine hours'
+            ]
+        };
+
         // Generic fallback for unknown tasks
-        function generateGenericBreakdown(task) {
-            return [
-                `Acknowledge the existence of the task: "${task}"`,
-                'Mentally prepare yourself for the complexity of this undertaking',
-                'Break down task into smaller, more manageable sub-components',
-                'Execute each sub-component with extreme attention to detail',
-                'Verify completion and document results for future reference'
-            ];
+        function generateGenericBreakdown(task, mode) {
+            if (mode === 'pirate') {
+                return [
+                    `Acknowledge the existence of this task, ye landlubber: "${task}"`,
+                    'Mentally prepare yerself fer the complexity of this undertakin\', arr!',
+                    'Break down the task into smaller, more manageable pieces of eight',
+                    'Execute each piece with extreme attention like countin\' treasure',
+                    'Verify completion and document results in yer captain\'s log'
+                ];
+            } else if (mode === 'shakespeare') {
+                return [
+                    `Acknowledgeth the existence of this task: "${task}"`,
+                    'Mentally prepareth thyself for the complexity of this undertaking',
+                    'Breaketh down the task into smaller, more manageable components',
+                    'Executeth each component with extreme attention to detail',
+                    'Verifyeth completion and documenteth results for future reference'
+                ];
+            } else {
+                return [
+                    `Acknowledge the existence of the task: "${task}"`,
+                    'Mentally prepare yourself for the complexity of this undertaking',
+                    'Break down task into smaller, more manageable sub-components',
+                    'Execute each sub-component with extreme attention to detail',
+                    'Verify completion and document results for future reference'
+                ];
+            }
         }
 
-        function getTaskBreakdown(task) {
+        function getTaskBreakdown(task, mode) {
             const normalizedTask = task.toLowerCase().trim();
+            let breakdownSource = taskBreakdowns;
+
+            // Select breakdown source based on mode
+            if (mode === 'pirate') {
+                breakdownSource = pirateBreakdowns;
+            } else if (mode === 'shakespeare') {
+                breakdownSource = shakespeareBreakdowns;
+            }
 
             // Check for exact matches
-            if (taskBreakdowns[normalizedTask]) {
-                return taskBreakdowns[normalizedTask];
+            if (breakdownSource[normalizedTask]) {
+                return breakdownSource[normalizedTask];
             }
 
             // Check for partial matches
-            for (const key in taskBreakdowns) {
+            for (const key in breakdownSource) {
                 if (normalizedTask.includes(key) || key.includes(normalizedTask)) {
-                    return taskBreakdowns[key];
+                    return breakdownSource[key];
                 }
             }
 
             // Return generic breakdown
-            return generateGenericBreakdown(task);
+            return generateGenericBreakdown(task, mode);
         }
 
         function createTaskCard(taskName) {
-            const steps = getTaskBreakdown(taskName);
+            const steps = getTaskBreakdown(taskName, currentMode);
             const taskId = Date.now();
 
             const taskCard = document.createElement('div');
