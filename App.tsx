@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { CheckCircle2, Trash2, Share2, Bell, Lock } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { CheckCircle2, Trash2, Share2, Bell, Lock, Download } from 'lucide-react';
 import { supabase } from './src/supabase';
 
 interface Task {
@@ -110,6 +110,9 @@ function App() {
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
+  const [showMemeModal, setShowMemeModal] = useState(false);
+  const [selectedTaskForMeme, setSelectedTaskForMeme] = useState<Task | null>(null);
+  const memeCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const premiumModes = ['pirate', 'shakespeare', 'manager', 'cheerleader'];
   const modeLabels: Record<string, string> = {
@@ -316,6 +319,95 @@ function App() {
     setFeedbackSubmitting(false);
   };
 
+  const handleShareTask = (task: Task) => {
+    setSelectedTaskForMeme(task);
+    setShowMemeModal(true);
+  };
+
+  const generateMemeCard = () => {
+    const canvas = memeCanvasRef.current;
+    if (!canvas || !selectedTaskForMeme) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = 800;
+    canvas.height = 600;
+
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#4FC3F7';
+    ctx.font = 'bold 24px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('OVERLY LITERAL', canvas.width / 2, 60);
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '16px monospace';
+    ctx.fillText('Original Task:', canvas.width / 2, 150);
+
+    ctx.font = 'bold 20px monospace';
+    const originalLines = wrapText(ctx, selectedTaskForMeme.original_task, canvas.width - 100);
+    originalLines.forEach((line, i) => {
+      ctx.fillText(line, canvas.width / 2, 190 + (i * 30));
+    });
+
+    const translatedY = 190 + (originalLines.length * 30) + 60;
+    ctx.font = '16px monospace';
+    ctx.fillStyle = '#4FC3F7';
+    ctx.fillText('Literal Translation:', canvas.width / 2, translatedY);
+
+    ctx.font = 'bold 20px monospace';
+    const translatedLines = wrapText(ctx, selectedTaskForMeme.translated_text, canvas.width - 100);
+    translatedLines.forEach((line, i) => {
+      ctx.fillText(line, canvas.width / 2, translatedY + 40 + (i * 30));
+    });
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '12px monospace';
+    ctx.fillText('overly-literal.app', canvas.width / 2, canvas.height - 30);
+  };
+
+  const wrapText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    });
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    return lines;
+  };
+
+  const downloadMeme = () => {
+    const canvas = memeCanvasRef.current;
+    if (!canvas) return;
+
+    const link = document.createElement('a');
+    link.download = 'overly-literal-meme.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  useEffect(() => {
+    if (showMemeModal && selectedTaskForMeme) {
+      setTimeout(() => generateMemeCard(), 100);
+    }
+  }, [showMemeModal, selectedTaskForMeme]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -517,9 +609,7 @@ function App() {
                     </div>
                     <div className="flex items-center gap-2 self-end sm:self-start">
                       <button
-                        onClick={() => {
-                          alert('Share feature: Generate literal breakdown meme');
-                        }}
+                        onClick={() => handleShareTask(task)}
                         className={`transition-opacity ${
                           hoveredTask === task.id ? 'opacity-40 hover:opacity-100' : 'opacity-0 sm:opacity-0'
                         }`}
@@ -563,6 +653,8 @@ function App() {
               })
             )}
           </div>
+
+      <VoteSection isPremium={isPremium} userId={user?.id} />
 
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -686,6 +778,48 @@ function App() {
           </div>
         </div>
       )}
+
+      {showMemeModal && selectedTaskForMeme && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowMemeModal(false)}
+          />
+
+          <div className="relative bg-black/90 backdrop-blur-md border border-white/20 p-8 w-full max-w-3xl">
+            <div className="space-y-6">
+              <h3 className="font-mono text-sm tracking-wider text-white/80 text-center">
+                MEME CARD PREVIEW
+              </h3>
+
+              <div className="bg-black border border-white/10 p-4 flex justify-center">
+                <canvas
+                  ref={memeCanvasRef}
+                  className="max-w-full h-auto"
+                  style={{ imageRendering: 'crisp-edges' }}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={downloadMeme}
+                  className="flex-1 bg-[#4FC3F7] text-black font-mono text-xs tracking-wider py-3 px-6 hover:bg-[#6DD5FF] transition-all duration-300 uppercase flex items-center justify-center gap-2"
+                >
+                  <Download size={16} strokeWidth={2} />
+                  DOWNLOAD
+                </button>
+
+                <button
+                  onClick={() => setShowMemeModal(false)}
+                  className="px-6 text-white/40 hover:text-white/60 font-mono text-xs tracking-wider transition-colors"
+                >
+                  CLOSE
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -694,6 +828,11 @@ interface Suggestion {
   id: string;
   suggestion_text: string;
   created_at: string;
+  vote_count: number;
+}
+
+interface UserVote {
+  suggestion_id: string;
 }
 
 function AdminDashboard({ onClose }: { onClose: () => void }) {
@@ -719,7 +858,7 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
 
     const { data: suggestionsData } = await supabase
       .from('suggestions')
-      .select('id, suggestion_text, created_at')
+      .select('id, suggestion_text, created_at, vote_count')
       .order('created_at', { ascending: false });
 
     if (tasksData) {
@@ -822,16 +961,144 @@ function AdminDashboard({ onClose }: { onClose: () => void }) {
               <div className="space-y-3">
                 {suggestions.map((suggestion) => (
                   <div key={suggestion.id} className="border-l-2 border-[#4FC3F7]/30 pl-4 py-2">
-                    <p className="font-mono text-sm text-white/80">{suggestion.suggestion_text}</p>
-                    <p className="font-mono text-[9px] text-white/40 mt-1">
-                      {new Date(suggestion.created_at).toLocaleString()}
-                    </p>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <p className="font-mono text-sm text-white/80">{suggestion.suggestion_text}</p>
+                        <p className="font-mono text-[9px] text-white/40 mt-1">
+                          {new Date(suggestion.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <span className="font-mono text-xs text-[#4FC3F7] whitespace-nowrap">
+                        {suggestion.vote_count} {suggestion.vote_count === 1 ? 'vote' : 'votes'}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function VoteSection({ isPremium, userId }: { isPremium: boolean; userId?: string }) {
+  const [topSuggestions, setTopSuggestions] = useState<Suggestion[]>([]);
+  const [userVotes, setUserVotes] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTopSuggestions();
+  }, []);
+
+  const loadTopSuggestions = async () => {
+    const { data: suggestions } = await supabase
+      .from('suggestions')
+      .select('id, suggestion_text, vote_count')
+      .order('vote_count', { ascending: false })
+      .limit(3);
+
+    if (suggestions) {
+      setTopSuggestions(suggestions);
+    }
+
+    if (userId) {
+      const { data: votes } = await supabase
+        .from('voted_suggestions')
+        .select('suggestion_id')
+        .eq('user_id', userId);
+
+      if (votes) {
+        setUserVotes(new Set(votes.map(v => v.suggestion_id)));
+      }
+    }
+
+    setLoading(false);
+  };
+
+  const handleVote = async (suggestionId: string) => {
+    if (!isPremium || !userId) {
+      return;
+    }
+
+    if (userVotes.has(suggestionId)) {
+      return;
+    }
+
+    const { error: voteError } = await supabase
+      .from('voted_suggestions')
+      .insert({
+        user_id: userId,
+        suggestion_id: suggestionId
+      });
+
+    if (!voteError) {
+      const { error: updateError } = await supabase.rpc('increment_vote_count', {
+        suggestion_id: suggestionId
+      });
+
+      if (!updateError) {
+        setUserVotes(new Set([...userVotes, suggestionId]));
+        setTopSuggestions(topSuggestions.map(s =>
+          s.id === suggestionId ? { ...s, vote_count: s.vote_count + 1 } : s
+        ));
+      }
+    }
+  };
+
+  if (loading || topSuggestions.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-8 border border-white/10 p-6">
+      <div className="font-mono text-[11px] tracking-wider text-white/60 mb-6">
+        PERSONALITY ROADMAP - VOTE
+      </div>
+
+      <div className="space-y-4">
+        {topSuggestions.map((suggestion, index) => {
+          const hasVoted = userVotes.has(suggestion.id);
+          const canVote = isPremium && !hasVoted;
+
+          return (
+            <div
+              key={suggestion.id}
+              className="flex items-center justify-between border-l-2 border-[#4FC3F7]/30 pl-4 py-3 hover:border-[#4FC3F7]/60 transition-colors"
+            >
+              <div className="flex items-center gap-4 flex-1">
+                <span className="font-mono text-[10px] text-white/40 w-8">#{index + 1}</span>
+                <p className="font-mono text-sm text-white/80">{suggestion.suggestion_text}</p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-xs text-[#4FC3F7]">
+                  {suggestion.vote_count} {suggestion.vote_count === 1 ? 'vote' : 'votes'}
+                </span>
+
+                {canVote ? (
+                  <button
+                    onClick={() => handleVote(suggestion.id)}
+                    className="border border-[#4FC3F7] text-[#4FC3F7] px-3 py-1 font-mono text-[9px] tracking-wider hover:bg-[#4FC3F7]/10 transition-all duration-300"
+                  >
+                    VOTE
+                  </button>
+                ) : hasVoted ? (
+                  <span className="font-mono text-[9px] text-white/30 px-3 py-1">VOTED</span>
+                ) : (
+                  <Lock size={12} className="text-white/20" strokeWidth={1.5} />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {!isPremium && (
+        <p className="mt-4 font-mono text-[10px] text-white/40 text-center">
+          Upgrade to Ultra to vote on personality suggestions
+        </p>
       )}
     </div>
   );
