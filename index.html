@@ -1,13 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Overly Literal Boutique</title>
     <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="App.tsx"></script>
-  </body>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        @keyframes progress-fill {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        .animate-progress-boutique {
+            animation: progress-fill 3s linear forwards;
+        }
+        body { background-color: black; color: white; font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center_bottom,#1a1a1a_0%,#000000_50%)] pointer-events-none"></div>
+            
+            <header class="relative text-center mb-16">
+                <h1 class="text-6xl md:text-8xl font-bold tracking-tighter mb-2 leading-none uppercase">
+                    OVERLY<br/>LITERAL
+                </h1>
+                <div class="h-px w-12 bg-[#007AFF] mx-auto mt-8"></div>
+            </header>
+
+            <div class="relative w-full max-w-md">
+                <form id="accessForm" class="space-y-6">
+                    <input 
+                        type="email" 
+                        placeholder="ENTER EMAIL ADDRESS" 
+                        class="w-full bg-transparent border-b border-white/20 py-3 focus:outline-none focus:border-[#007AFF] transition-colors font-mono text-sm tracking-widest uppercase"
+                        required 
+                    />
+                    <button type="submit" class="w-full border border-white/30 py-4 font-mono text-[11px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-300 uppercase">
+                        Request Access
+                    </button>
+                </form>
+
+                <div id="loadingState" class="hidden text-center space-y-6">
+                    <p class="font-mono text-[10px] tracking-[0.4em] text-white/60 uppercase">
+                        Calculating Molecular Requirements...
+                    </p>
+                    <div class="w-full h-[1px] bg-white/10 overflow-hidden">
+                        <div class="h-full bg-[#007AFF] animate-progress-boutique"></div>
+                    </div>
+                </div>
+
+                <div id="successState" class="hidden text-center space-y-4">
+                    <div class="text-[#007AFF] text-4xl mb-6">✓</div>
+                    <p class="font-mono text-[11px] tracking-[0.3em] leading-relaxed uppercase">
+                        Access Requested.<br/>
+                        We will contact you shortly.
+                    </p>
+                </div>
+            </div>
+
+            <footer class="absolute bottom-12 w-full text-center opacity-20">
+                <p class="font-mono text-[9px] tracking-[0.5em] uppercase">
+                    © 2026 OVERLY LITERAL. STATED CLEARLY.
+                </p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('accessForm');
+        const loading = document.getElementById('loadingState');
+        const success = document.getElementById('successState');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            form.classList.add('hidden');
+            loading.classList.remove('hidden');
+            
+            setTimeout(() => {
+                loading.classList.add('hidden');
+                success.classList.remove('hidden');
+            }, 3000);
+        });
+    </script>
+</body>
 </html>
