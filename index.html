@@ -89,12 +89,14 @@
             opacity: 1;
         }
         .product-card {
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             padding: 1.5rem;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.3);
         }
         .product-card:hover {
-            border-color: rgba(0, 122, 255, 0.5);
+            border-color: rgba(0, 122, 255, 0.3);
+            background: rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
@@ -154,76 +156,100 @@
                 </div>
             </div>
 
-            <div id="productGrid" class="relative w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24">
-                <div class="product-card">
-                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
-                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
-                    </div>
-                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Actual T-Shirt</h3>
-                    <p class="text-white/60 text-sm mb-4">A shirt. Made of cotton. Literally what you think it is.</p>
-                    <div class="redacted-price">
-                        <span class="font-mono text-sm">$29.99</span>
-                        <div class="redacted-bar"></div>
-                    </div>
+            <div id="productGrid" class="relative w-full max-w-6xl mb-24">
+                <div class="mb-12 pb-6 border-b border-white/10">
+                    <h2 class="font-mono text-[10px] tracking-[0.5em] text-white/40 uppercase">Literal Objects</h2>
                 </div>
 
-                <div class="product-card">
-                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
-                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="product-card">
+                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
+                            <div class="text-center">
+                                <div class="text-6xl text-white/20 mb-2">□</div>
+                                <span class="text-white/30 font-mono text-[10px] tracking-wider">GEOMETRIC FORM</span>
+                            </div>
+                        </div>
+                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 01</h3>
+                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">A Solid Cube. 10cm x 10cm x 10cm. Mass: 800g. Material: Unspecified.</p>
+                        <div class="redacted-price">
+                            <span class="font-mono text-xs text-white/70">$247.00</span>
+                            <div class="redacted-bar"></div>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Real Denim Jeans</h3>
-                    <p class="text-white/60 text-sm mb-4">Pants. Blue. Two legs. Pockets included as described.</p>
-                    <div class="redacted-price">
-                        <span class="font-mono text-sm">$89.99</span>
-                        <div class="redacted-bar"></div>
-                    </div>
-                </div>
 
-                <div class="product-card">
-                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
-                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    <div class="product-card">
+                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
+                            <div class="text-center">
+                                <div class="text-6xl text-white/20 mb-2">〰</div>
+                                <span class="text-white/30 font-mono text-[10px] tracking-wider">LIQUID STATE</span>
+                            </div>
+                        </div>
+                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 02</h3>
+                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">500ml of Transparent Liquid. Viscosity: 1.0 cP. Temperature: 20°C. pH: 7.0.</p>
+                        <div class="redacted-price">
+                            <span class="font-mono text-xs text-white/70">$892.00</span>
+                            <div class="redacted-bar"></div>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Honest Sneakers</h3>
-                    <p class="text-white/60 text-sm mb-4">Footwear. Laces. Rubber sole. Exactly as labeled.</p>
-                    <div class="redacted-price">
-                        <span class="font-mono text-sm">$119.99</span>
-                        <div class="redacted-bar"></div>
-                    </div>
-                </div>
 
-                <div class="product-card">
-                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
-                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    <div class="product-card">
+                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
+                            <div class="text-center">
+                                <div class="text-6xl text-white/20 mb-2">{ }</div>
+                                <span class="text-white/30 font-mono text-[10px] tracking-wider">COMPRESSED DATA</span>
+                            </div>
+                        </div>
+                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 03</h3>
+                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">A Compressed Data Packet. Size: 2.4MB. Format: Binary. Entropy: High.</p>
+                        <div class="redacted-price">
+                            <span class="font-mono text-xs text-white/70">$1,450.00</span>
+                            <div class="redacted-bar"></div>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Factual Jacket</h3>
-                    <p class="text-white/60 text-sm mb-4">Outer layer. Zipper closure. Keeps you warm.</p>
-                    <div class="redacted-price">
-                        <span class="font-mono text-sm">$199.99</span>
-                        <div class="redacted-bar"></div>
-                    </div>
-                </div>
 
-                <div class="product-card">
-                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
-                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    <div class="product-card">
+                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
+                            <div class="text-center">
+                                <div class="text-6xl text-white/20 mb-2">○</div>
+                                <span class="text-white/30 font-mono text-[10px] tracking-wider">SPHERICAL OBJECT</span>
+                            </div>
+                        </div>
+                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 04</h3>
+                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">A Perfect Sphere. Diameter: 5cm. Surface: Polished. Reflectivity: 87%.</p>
+                        <div class="redacted-price">
+                            <span class="font-mono text-xs text-white/70">$3,200.00</span>
+                            <div class="redacted-bar"></div>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The Genuine Hat</h3>
-                    <p class="text-white/60 text-sm mb-4">Head covering. Cotton blend. Protects from sun.</p>
-                    <div class="redacted-price">
-                        <span class="font-mono text-sm">$34.99</span>
-                        <div class="redacted-bar"></div>
-                    </div>
-                </div>
 
-                <div class="product-card">
-                    <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center">
-                        <span class="text-white/20 font-mono text-xs">PRODUCT IMAGE</span>
+                    <div class="product-card">
+                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
+                            <div class="text-center">
+                                <div class="text-6xl text-white/20 mb-2">⚡</div>
+                                <span class="text-white/30 font-mono text-[10px] tracking-wider">ENERGY UNIT</span>
+                            </div>
+                        </div>
+                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 05</h3>
+                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">1 Kilowatt-Hour. Stored in capacitor array. Voltage: 48V DC. Deliverable.</p>
+                        <div class="redacted-price">
+                            <span class="font-mono text-xs text-white/70">$567.00</span>
+                            <div class="redacted-bar"></div>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wide">The True Socks</h3>
-                    <p class="text-white/60 text-sm mb-4">Foot garments. Sold in pairs. Cotton. No surprises.</p>
-                    <div class="redacted-price">
-                        <span class="font-mono text-sm">$14.99</span>
-                        <div class="redacted-bar"></div>
+
+                    <div class="product-card">
+                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
+                            <div class="text-center">
+                                <div class="text-6xl text-white/20 mb-2">▲</div>
+                                <span class="text-white/30 font-mono text-[10px] tracking-wider">CRYSTALLINE FORM</span>
+                            </div>
+                        </div>
+                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 06</h3>
+                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">A Triangular Prism. Length: 15cm. Base: Equilateral. Optical grade clarity.</p>
+                        <div class="redacted-price">
+                            <span class="font-mono text-xs text-white/70">$4,100.00</span>
+                            <div class="redacted-bar"></div>
+                        </div>
                     </div>
                 </div>
             </div>
