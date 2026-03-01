@@ -9,12 +9,15 @@
   }
 }
 
-/* The Boutique Progress Bar Animation */
-@keyframes progress-fill {
-  from { width: 0%; }
-  to { width: 100%; }
+@keyframes progress-boutique {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }
 
 .animate-progress-boutique {
-  animation: progress-fill 3s linear forwards;
+  animation: progress-boutique 3s ease-in-out infinite;
 }
