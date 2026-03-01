@@ -3,312 +3,390 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overly Literal Boutique</title>
+    <title>Overly Literal To-Do List</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @keyframes boot-flicker {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
-        }
-        @keyframes boot-scan {
-            from { transform: translateY(-100%); }
-            to { transform: translateY(100vh); }
-        }
-        @keyframes progress-fill {
-            from { width: 0%; }
-            to { width: 100%; }
-        }
-        @keyframes blue-line-expand {
-            from { width: 12px; }
-            to { width: 100vw; }
-        }
-        @keyframes redacted-reveal {
-            from { width: 0%; }
-            to { width: 100%; }
-        }
-        .animate-progress-boutique {
-            animation: progress-fill 3s linear forwards;
-        }
-        .animate-blue-expand {
-            animation: blue-line-expand 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-        .boot-cursor::after {
-            content: '█';
-            animation: boot-flicker 0.8s infinite;
-        }
-        .boot-scanline {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(to bottom, transparent, rgba(0, 255, 0, 0.5), transparent);
-            animation: boot-scan 2s linear infinite;
-            pointer-events: none;
-        }
-        .redacted-price {
-            position: relative;
-            display: inline-block;
-        }
-        .redacted-bar {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 0;
-            height: 3px;
-            background: white;
-            transform: translateY(-50%);
-            transition: width 0.3s ease;
-        }
-        .redacted-price:hover .redacted-bar {
-            width: 100%;
-        }
         body {
-            background-color: black;
+            background-color: #0B0F14;
             color: white;
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
         }
-        #bootScreen {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: black;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 2rem;
-        }
-        #productGrid {
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-        #productGrid.visible {
-            opacity: 1;
-        }
-        .product-card {
-            border: 1px solid rgba(255, 255, 255, 0.05);
+
+        .task-card {
+            background: linear-gradient(135deg, rgba(79, 195, 247, 0.05) 0%, rgba(11, 15, 20, 0.8) 100%);
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            border-radius: 12px;
             padding: 1.5rem;
             transition: all 0.3s ease;
-            background: rgba(0, 0, 0, 0.3);
         }
-        .product-card:hover {
-            border-color: rgba(0, 122, 255, 0.3);
-            background: rgba(0, 0, 0, 0.5);
+
+        .task-card:hover {
+            border-color: rgba(79, 195, 247, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(79, 195, 247, 0.15);
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .step-item:hover {
+            background: rgba(79, 195, 247, 0.05);
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4FC3F7;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox:hover {
+            background: rgba(79, 195, 247, 0.1);
+        }
+
+        .checkbox.checked {
+            background: #4FC3F7;
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: #0B0F14;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .step-text {
+            flex: 1;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+        }
+
+        .step-text.completed {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .input-bar {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(79, 195, 247, 0.3);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            color: white;
+            width: 100%;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .input-bar:focus {
+            border-color: #4FC3F7;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(79, 195, 247, 0.1);
+        }
+
+        .input-bar::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .add-button {
+            background: #4FC3F7;
+            color: #0B0F14;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .add-button:hover {
+            background: #6DD5FF;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(79, 195, 247, 0.3);
+        }
+
+        .add-button:active {
+            transform: translateY(0);
+        }
+
+        .delete-button {
+            background: rgba(255, 59, 48, 0.1);
+            color: #FF3B30;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .delete-button:hover {
+            background: rgba(255, 59, 48, 0.2);
+            border-color: rgba(255, 59, 48, 0.5);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.2);
+        }
+
+        .task-title {
+            color: #4FC3F7;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .step-number {
+            color: #4FC3F7;
+            font-weight: 600;
+            min-width: 24px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 <body>
-    <div id="bootScreen">
-        <div class="boot-scanline"></div>
-        <div class="max-w-2xl mx-auto w-full space-y-2 font-mono text-xs text-green-400">
-            <div class="boot-line"><span class="boot-cursor">SYSTEM CHECK INITIATED</span></div>
-            <div class="boot-line hidden"><span>LOADING BOUTIQUE MODULES............... OK</span></div>
-            <div class="boot-line hidden"><span>VERIFYING PRODUCT CATALOG.............. OK</span></div>
-            <div class="boot-line hidden"><span>INITIALIZING LITERAL INTERFACE......... OK</span></div>
-            <div class="boot-line hidden"><span>CHECKING OVERLY PRECISE SPECIFICATIONS. OK</span></div>
-            <div class="boot-line hidden"><span>SYSTEM READY</span></div>
-        </div>
-    </div>
-
-    <div id="mainApp" class="hidden">
-        <div class="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden">
-            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center_bottom,#1a1a1a_0%,#000000_50%)] pointer-events-none"></div>
-
-            <header class="relative text-center mb-16">
-                <h1 class="text-6xl md:text-8xl font-bold tracking-tighter mb-2 leading-none uppercase">
-                    OVERLY<br/>LITERAL
+    <div class="min-h-screen px-6 py-12">
+        <div class="max-w-4xl mx-auto">
+            <!-- Hero Section -->
+            <header class="text-center mb-16">
+                <h1 class="text-6xl md:text-7xl font-bold tracking-tight mb-4 leading-tight">
+                    OVERLY LITERAL
                 </h1>
-                <div id="blueLine" class="h-px w-12 bg-[#007AFF] mx-auto mt-8"></div>
+                <p class="text-lg text-white/60 tracking-wide">
+                    Tasks Taken Way Too Literally 😏
+                </p>
             </header>
 
-            <div id="accessSection" class="relative w-full max-w-md mb-16">
-                <form id="accessForm" class="space-y-6">
+            <!-- Input Section -->
+            <div class="mb-12">
+                <div class="flex gap-4">
                     <input
-                        id="emailInput"
-                        type="email"
-                        placeholder="ENTER EMAIL ADDRESS"
-                        class="w-full bg-transparent border-b border-white/20 py-3 focus:outline-none focus:border-[#007AFF] transition-colors font-mono text-sm tracking-widest uppercase"
-                        required
+                        id="taskInput"
+                        type="text"
+                        class="input-bar"
+                        placeholder="Add a task..."
+                        autocomplete="off"
                     />
-                    <button type="submit" class="w-full border border-white/30 py-4 font-mono text-[11px] tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-300 uppercase">
-                        Request Access
+                    <button id="addButton" class="add-button">
+                        Add Task
                     </button>
-                </form>
-
-                <div id="loadingState" class="hidden text-center space-y-6">
-                    <p class="font-mono text-[10px] tracking-[0.4em] text-white/60 uppercase">
-                        Calculating Molecular Requirements...
-                    </p>
-                    <div class="w-full h-[1px] bg-white/10 overflow-hidden">
-                        <div class="h-full bg-[#007AFF] animate-progress-boutique"></div>
-                    </div>
-                </div>
-
-                <div id="successState" class="hidden text-center space-y-4">
-                    <div class="text-[#007AFF] text-4xl mb-6">✓</div>
-                    <p class="font-mono text-[11px] tracking-[0.3em] leading-relaxed uppercase">
-                        Access Granted.<br/>
-                        Scroll to browse catalog.
-                    </p>
                 </div>
             </div>
 
-            <div id="productGrid" class="relative w-full max-w-6xl mb-24">
-                <div class="mb-12 pb-6 border-b border-white/10">
-                    <h2 class="font-mono text-[10px] tracking-[0.5em] text-white/40 uppercase">Literal Objects</h2>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="product-card">
-                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
-                            <div class="text-center">
-                                <div class="text-6xl text-white/20 mb-2">□</div>
-                                <span class="text-white/30 font-mono text-[10px] tracking-wider">GEOMETRIC FORM</span>
-                            </div>
-                        </div>
-                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 01</h3>
-                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">A Solid Cube. 10cm x 10cm x 10cm. Mass: 800g. Material: Unspecified.</p>
-                        <div class="redacted-price">
-                            <span class="font-mono text-xs text-white/70">$247.00</span>
-                            <div class="redacted-bar"></div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
-                            <div class="text-center">
-                                <div class="text-6xl text-white/20 mb-2">〰</div>
-                                <span class="text-white/30 font-mono text-[10px] tracking-wider">LIQUID STATE</span>
-                            </div>
-                        </div>
-                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 02</h3>
-                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">500ml of Transparent Liquid. Viscosity: 1.0 cP. Temperature: 20°C. pH: 7.0.</p>
-                        <div class="redacted-price">
-                            <span class="font-mono text-xs text-white/70">$892.00</span>
-                            <div class="redacted-bar"></div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
-                            <div class="text-center">
-                                <div class="text-6xl text-white/20 mb-2">{ }</div>
-                                <span class="text-white/30 font-mono text-[10px] tracking-wider">COMPRESSED DATA</span>
-                            </div>
-                        </div>
-                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 03</h3>
-                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">A Compressed Data Packet. Size: 2.4MB. Format: Binary. Entropy: High.</p>
-                        <div class="redacted-price">
-                            <span class="font-mono text-xs text-white/70">$1,450.00</span>
-                            <div class="redacted-bar"></div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
-                            <div class="text-center">
-                                <div class="text-6xl text-white/20 mb-2">○</div>
-                                <span class="text-white/30 font-mono text-[10px] tracking-wider">SPHERICAL OBJECT</span>
-                            </div>
-                        </div>
-                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 04</h3>
-                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">A Perfect Sphere. Diameter: 5cm. Surface: Polished. Reflectivity: 87%.</p>
-                        <div class="redacted-price">
-                            <span class="font-mono text-xs text-white/70">$3,200.00</span>
-                            <div class="redacted-bar"></div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
-                            <div class="text-center">
-                                <div class="text-6xl text-white/20 mb-2">⚡</div>
-                                <span class="text-white/30 font-mono text-[10px] tracking-wider">ENERGY UNIT</span>
-                            </div>
-                        </div>
-                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 05</h3>
-                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">1 Kilowatt-Hour. Stored in capacitor array. Voltage: 48V DC. Deliverable.</p>
-                        <div class="redacted-price">
-                            <span class="font-mono text-xs text-white/70">$567.00</span>
-                            <div class="redacted-bar"></div>
-                        </div>
-                    </div>
-
-                    <div class="product-card">
-                        <div class="aspect-square bg-white/5 mb-4 flex items-center justify-center border border-white/10">
-                            <div class="text-center">
-                                <div class="text-6xl text-white/20 mb-2">▲</div>
-                                <span class="text-white/30 font-mono text-[10px] tracking-wider">CRYSTALLINE FORM</span>
-                            </div>
-                        </div>
-                        <h3 class="font-mono text-sm mb-2 tracking-wide text-white/90">OBJECT 06</h3>
-                        <p class="text-white/50 text-xs mb-4 font-mono leading-relaxed">A Triangular Prism. Length: 15cm. Base: Equilateral. Optical grade clarity.</p>
-                        <div class="redacted-price">
-                            <span class="font-mono text-xs text-white/70">$4,100.00</span>
-                            <div class="redacted-bar"></div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Tasks Container -->
+            <div id="tasksContainer" class="space-y-6">
+                <!-- Tasks will be dynamically added here -->
             </div>
-
-            <footer class="absolute bottom-12 w-full text-center opacity-20">
-                <p class="font-mono text-[9px] tracking-[0.5em] uppercase">
-                    © 2026 OVERLY LITERAL. STATED CLEARLY.
-                </p>
-            </footer>
         </div>
     </div>
 
     <script>
-        // Boot sequence
-        const bootScreen = document.getElementById('bootScreen');
-        const mainApp = document.getElementById('mainApp');
-        const bootLines = document.querySelectorAll('.boot-line');
+        const taskInput = document.getElementById('taskInput');
+        const addButton = document.getElementById('addButton');
+        const tasksContainer = document.getElementById('tasksContainer');
 
-        let currentLine = 0;
-        const bootInterval = setInterval(() => {
-            if (currentLine < bootLines.length) {
-                bootLines[currentLine].classList.remove('hidden');
-                currentLine++;
-            } else {
-                clearInterval(bootInterval);
-                setTimeout(() => {
-                    bootScreen.style.display = 'none';
-                    mainApp.classList.remove('hidden');
-                }, 500);
+        // Overly literal task breakdowns
+        const taskBreakdowns = {
+            'buy milk': [
+                'Locate nearest retail establishment that stocks dairy products',
+                'Calculate optimal route considering traffic patterns and fuel efficiency',
+                'Verify monetary funds are sufficient (accounting for sales tax)',
+                'Physically transport container of pasteurized bovine lactation fluid to checkout',
+                'Complete financial transaction and obtain proof of purchase receipt'
+            ],
+            'call mom': [
+                'Retrieve telecommunication device from pocket or nearby surface',
+                'Unlock device using biometric authentication or numerical password',
+                'Navigate to contacts application and locate maternal parental entry',
+                'Initiate voice transmission protocol by pressing designated button',
+                'Engage in verbal exchange of information for socially acceptable duration'
+            ],
+            'exercise': [
+                'Don clothing designed specifically for physical exertion activities',
+                'Perform cardiovascular warm-up consisting of elevated heart rate induction',
+                'Execute repetitive muscle contraction and extension movements',
+                'Monitor biological indicators including pulse rate and perspiration levels',
+                'Gradually reduce physical intensity during cool-down phase to prevent injury'
+            ],
+            'study': [
+                'Gather all relevant informational materials and writing implements',
+                'Establish distraction-free environment with optimal lighting conditions',
+                'Process written information through visual cortex and store in memory',
+                'Create condensed summaries using annotation techniques',
+                'Test knowledge retention through self-administered questioning protocol'
+            ],
+            'sleep': [
+                'Complete evening hygiene routine including dental care procedures',
+                'Adjust room temperature to optimal sleeping range (60-67°F)',
+                'Position body horizontally on cushioned sleeping surface',
+                'Reduce cognitive activity and regulate breathing patterns',
+                'Enter state of reduced consciousness for 7-9 hour duration'
+            ]
+        };
+
+        // Generic fallback for unknown tasks
+        function generateGenericBreakdown(task) {
+            return [
+                `Acknowledge the existence of the task: "${task}"`,
+                'Mentally prepare yourself for the complexity of this undertaking',
+                'Break down task into smaller, more manageable sub-components',
+                'Execute each sub-component with extreme attention to detail',
+                'Verify completion and document results for future reference'
+            ];
+        }
+
+        function getTaskBreakdown(task) {
+            const normalizedTask = task.toLowerCase().trim();
+
+            // Check for exact matches
+            if (taskBreakdowns[normalizedTask]) {
+                return taskBreakdowns[normalizedTask];
             }
-        }, 400);
 
-        // Form handling
-        const form = document.getElementById('accessForm');
-        const loading = document.getElementById('loadingState');
-        const success = document.getElementById('successState');
-        const productGrid = document.getElementById('productGrid');
-        const blueLine = document.getElementById('blueLine');
-        const emailInput = document.getElementById('emailInput');
+            // Check for partial matches
+            for (const key in taskBreakdowns) {
+                if (normalizedTask.includes(key) || key.includes(normalizedTask)) {
+                    return taskBreakdowns[key];
+                }
+            }
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
+            // Return generic breakdown
+            return generateGenericBreakdown(task);
+        }
 
-            // Trigger blue line expansion
-            blueLine.classList.add('animate-blue-expand');
+        function createTaskCard(taskName) {
+            const steps = getTaskBreakdown(taskName);
+            const taskId = Date.now();
 
-            form.classList.add('hidden');
-            loading.classList.remove('hidden');
+            const taskCard = document.createElement('div');
+            taskCard.className = 'task-card fade-in';
+            taskCard.dataset.taskId = taskId;
 
-            setTimeout(() => {
-                loading.classList.add('hidden');
-                success.classList.remove('hidden');
+            const taskHeader = document.createElement('div');
+            taskHeader.className = 'task-header';
 
-                // Show product grid
+            const taskTitle = document.createElement('div');
+            taskTitle.className = 'task-title';
+            taskTitle.textContent = taskName;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-button';
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => {
+                taskCard.style.opacity = '0';
+                taskCard.style.transform = 'scale(0.95)';
+                setTimeout(() => taskCard.remove(), 300);
+            };
+
+            taskHeader.appendChild(taskTitle);
+            taskHeader.appendChild(deleteButton);
+
+            const stepsContainer = document.createElement('div');
+            stepsContainer.className = 'space-y-2';
+
+            steps.forEach((step, index) => {
+                const stepItem = document.createElement('div');
+                stepItem.className = 'step-item';
+
+                const checkbox = document.createElement('div');
+                checkbox.className = 'checkbox';
+                checkbox.dataset.checked = 'false';
+
+                const stepNumber = document.createElement('div');
+                stepNumber.className = 'step-number';
+                stepNumber.textContent = `${index + 1}.`;
+
+                const stepText = document.createElement('div');
+                stepText.className = 'step-text';
+                stepText.textContent = step;
+
+                checkbox.onclick = () => {
+                    const isChecked = checkbox.dataset.checked === 'true';
+                    checkbox.dataset.checked = !isChecked;
+
+                    if (!isChecked) {
+                        checkbox.classList.add('checked');
+                        stepText.classList.add('completed');
+                    } else {
+                        checkbox.classList.remove('checked');
+                        stepText.classList.remove('completed');
+                    }
+                };
+
+                stepItem.appendChild(checkbox);
+                stepItem.appendChild(stepNumber);
+                stepItem.appendChild(stepText);
+                stepsContainer.appendChild(stepItem);
+            });
+
+            taskCard.appendChild(taskHeader);
+            taskCard.appendChild(stepsContainer);
+
+            return taskCard;
+        }
+
+        function addTask() {
+            const taskName = taskInput.value.trim();
+
+            if (taskName === '') {
+                taskInput.style.borderColor = 'rgba(255, 59, 48, 0.5)';
                 setTimeout(() => {
-                    productGrid.classList.add('visible');
+                    taskInput.style.borderColor = '';
                 }, 500);
-            }, 3000);
+                return;
+            }
+
+            const taskCard = createTaskCard(taskName);
+            tasksContainer.appendChild(taskCard);
+
+            taskInput.value = '';
+            taskInput.focus();
+        }
+
+        addButton.addEventListener('click', addTask);
+
+        taskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTask();
+            }
         });
+
+        // Auto-focus input on page load
+        taskInput.focus();
     </script>
 </body>
 </html>
