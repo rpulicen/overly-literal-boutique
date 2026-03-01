@@ -51,8 +51,15 @@ export default function App() {
   }, []);
 
   async function checkSession() {
+    setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Session error:', error);
+        setLoading(false);
+        return;
+      }
+
       if (session?.user) {
         setUser(session.user);
         await fetchProfile(session.user.id);
@@ -74,6 +81,8 @@ export default function App() {
 
       if (error) {
         console.error('Profile fetch error:', error);
+        setIsAdmin(false);
+        setIsPremium(false);
         return;
       }
 
@@ -85,6 +94,8 @@ export default function App() {
       }
     } catch (error) {
       console.error('Profile fetch failed:', error);
+      setIsAdmin(false);
+      setIsPremium(false);
     }
   }
 
