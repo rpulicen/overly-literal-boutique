@@ -101,6 +101,9 @@ function App() {
   const [hoveredTask, setHoveredTask] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [justUnlocked, setJustUnlocked] = useState(false);
+  const [upgradeProgress, setUpgradeProgress] = useState(0);
 
   const premiumModes = ['pirate', 'shakespeare', 'manager', 'cheerleader'];
   const modeLabels: Record<string, string> = {
@@ -171,6 +174,30 @@ function App() {
       return;
     }
     setMode(selectedMode);
+  };
+
+  const handleUpgrade = async () => {
+    setIsUpgrading(true);
+    setUpgradeProgress(0);
+
+    const interval = setInterval(() => {
+      setUpgradeProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 30);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      setIsPremium(true);
+      setIsUpgrading(false);
+      setShowUpgradeModal(false);
+      setJustUnlocked(true);
+      setTimeout(() => setJustUnlocked(false), 1000);
+    }, 1500);
   };
 
   const addTask = async () => {
@@ -333,7 +360,7 @@ function App() {
                   <button
                     key={m}
                     onClick={() => handleModeClick(m)}
-                    className={`relative px-3 py-1 font-mono text-[9px] tracking-wider border transition-all duration-300 ${
+                    className={`relative px-3 py-1 font-mono text-[9px] tracking-wider border transition-all duration-300 active:scale-95 ${
                       mode === m
                         ? 'border-[#4FC3F7] text-[#4FC3F7]'
                         : 'border-white/20 text-white/40 hover:text-white/60'
@@ -343,7 +370,9 @@ function App() {
                     {isLocked && (
                       <Lock
                         size={10}
-                        className="absolute right-1 top-1/2 -translate-y-1/2 text-[#4FC3F7]"
+                        className={`absolute right-1 top-1/2 -translate-y-1/2 text-[#4FC3F7] transition-all duration-500 ${
+                          justUnlocked ? 'opacity-0 scale-150 animate-pulse' : 'opacity-100'
+                        }`}
                         strokeWidth={2}
                       />
                     )}
@@ -385,15 +414,17 @@ function App() {
                 </p>
               </div>
             ) : (
-              tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className={`border border-white/10 p-3 sm:p-4 hover:border-white/20 transition-all group relative ${
-                    task.completed ? 'completed-glow' : ''
-                  }`}
-                  onMouseEnter={() => setHoveredTask(task.id)}
-                  onMouseLeave={() => setHoveredTask(null)}
-                >
+              tasks.map((task) => {
+                const isPremiumTask = premiumModes.includes(task.translation_mode);
+                return (
+                  <div
+                    key={task.id}
+                    className={`border border-white/10 p-3 sm:p-4 hover:border-white/20 transition-all group relative ${
+                      task.completed ? 'completed-glow' : ''
+                    } ${isPremiumTask ? 'premium-card' : ''}`}
+                    onMouseEnter={() => setHoveredTask(task.id)}
+                    onMouseLeave={() => setHoveredTask(null)}
+                  >
                   <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
                     <div className="flex-1 w-full sm:w-auto">
                       <div className="text-[10px] sm:text-[11px] font-mono tracking-wider text-white/50 mb-1 uppercase break-words">
@@ -445,7 +476,8 @@ function App() {
                     </div>
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -458,36 +490,53 @@ function App() {
             onClick={() => setShowUpgradeModal(false)}
           />
           <div className="relative bg-black/90 backdrop-blur-md border border-white/20 rounded-none max-w-md w-full p-8 shadow-2xl">
-            <div className="text-center space-y-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 border border-[#4FC3F7] rounded-none mb-4">
-                <Lock size={32} className="text-[#4FC3F7]" strokeWidth={1.5} />
+            {isUpgrading ? (
+              <div className="text-center space-y-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 border border-[#4FC3F7] rounded-none mb-4 animate-pulse">
+                  <Lock size={32} className="text-[#4FC3F7]" strokeWidth={1.5} />
+                </div>
+
+                <h2 className="text-xl font-bold tracking-tight text-[#4FC3F7]">System Decrypting...</h2>
+
+                <div className="space-y-2">
+                  <div className="w-full h-2 bg-white/10 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#4FC3F7] to-[#00E5FF] transition-all duration-300 ease-out"
+                      style={{ width: `${upgradeProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-white/40 font-mono text-xs">{upgradeProgress}%</p>
+                </div>
               </div>
+            ) : (
+              <div className="text-center space-y-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 border border-[#4FC3F7] rounded-none mb-4">
+                  <Lock size={32} className="text-[#4FC3F7]" strokeWidth={1.5} />
+                </div>
 
-              <h2 className="text-2xl font-bold tracking-tight">Unlock the Crew</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Unlock the Crew</h2>
 
-              <p className="text-white/60 text-sm leading-relaxed">
-                Upgrade to Ultra for $2.99/mo and unlock all premium personalities: Pirate, Shakespeare, Bossy Manager, and Cheerleader modes.
-              </p>
+                <p className="text-white/60 text-sm leading-relaxed">
+                  Upgrade to Ultra for $2.99/mo and unlock all premium personalities: Pirate, Shakespeare, Bossy Manager, and Cheerleader modes.
+                </p>
 
-              <div className="space-y-3 pt-4">
-                <button
-                  onClick={() => {
-                    setIsPremium(true);
-                    setShowUpgradeModal(false);
-                  }}
-                  className="w-full bg-[#4FC3F7] text-black font-mono text-xs tracking-wider py-3 px-6 hover:bg-[#6DD5FF] transition-all duration-300 uppercase"
-                >
-                  Upgrade
-                </button>
+                <div className="space-y-3 pt-4">
+                  <button
+                    onClick={handleUpgrade}
+                    className="w-full bg-[#4FC3F7] text-black font-mono text-xs tracking-wider py-3 px-6 hover:bg-[#6DD5FF] transition-all duration-300 uppercase active:scale-95"
+                  >
+                    Upgrade
+                  </button>
 
-                <button
-                  onClick={() => setShowUpgradeModal(false)}
-                  className="w-full text-white/40 hover:text-white/60 font-mono text-[10px] tracking-wider transition-colors"
-                >
-                  Maybe Later
-                </button>
+                  <button
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="w-full text-white/40 hover:text-white/60 font-mono text-[10px] tracking-wider transition-colors"
+                  >
+                    Maybe Later
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
