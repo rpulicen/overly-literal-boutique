@@ -1,2 +1,3 @@
-# Files that should never be modified by the assistant
 .env
+src/supabase.js
+App.tsx

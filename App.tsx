@@ -318,45 +318,23 @@ function getTaskTranslation(task: string, mode: string): string {
 }
 
 export default function App() {
-  window.localStorage.removeItem('supabase.auth.token');
-  window.localStorage.clear();
+  localStorage.clear();
+  sessionStorage.clear();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('rod.puliceno@gmail.com');
   const [password, setPassword] = useState('');
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>({ email: 'rod.puliceno@gmail.com', id: 'force-bypass' });
+  const [loading, setLoading] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [taskInput, setTaskInput] = useState('');
   const [mode, setMode] = useState('standard');
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [isPremium, setIsPremium] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPremium, setIsPremium] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(true);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [showToast, setShowToast] = useState(false);
-
-  useEffect(() => {
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      (async () => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-          setIsAuthenticating(false);
-          window.location.href = '/';
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setIsAdmin(false);
-          setIsPremium(false);
-          setTasks([]);
-        }
-      })();
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   async function checkSession() {
     setLoading(true);
