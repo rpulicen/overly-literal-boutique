@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, LogOut, Loader2, Lock, Shield, Copy, Check, Share2, ExternalLink } from 'lucide-react';
+import { Trash2, Plus, LogOut, Loader2, Lock, Shield, Copy, Check, Share2 } from 'lucide-react';
 import { supabase } from './src/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -318,23 +318,40 @@ function getTaskTranslation(task: string, mode: string): string {
 }
 
 export default function App() {
-  localStorage.clear();
-  sessionStorage.clear();
-
-  const [email, setEmail] = useState('rod.puliceno@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [user, setUser] = useState<any>({ email: 'rod.puliceno@gmail.com', id: 'force-bypass' });
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [taskInput, setTaskInput] = useState('');
   const [mode, setMode] = useState('standard');
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [isPremium, setIsPremium] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(true);
+  const [isPremium, setIsPremium] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      (async () => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+          setIsAuthenticating(false);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setIsAdmin(false);
+          setIsPremium(false);
+          setTasks([]);
+        }
+      })();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   async function checkSession() {
     setLoading(true);
@@ -417,8 +434,8 @@ export default function App() {
         .insert([{
           id: uid,
           email: userEmail,
-          is_admin: isRod,
-          has_upgraded: isRod
+          is_admin: false,
+          has_upgraded: false
         }])
         .select()
         .maybeSingle();
@@ -426,9 +443,14 @@ export default function App() {
       if (!error && data) {
         console.log('Profile created:', data);
         setProfile(data);
-        setIsAdmin(data.is_admin === true);
-        setIsPremium(data.has_upgraded === true);
-        console.log('Admin status:', data.is_admin, 'Premium status:', data.has_upgraded);
+        if (isRod) {
+          setIsAdmin(true);
+          setIsPremium(true);
+          console.log('Admin access granted for Rod');
+        } else {
+          setIsAdmin(data.is_admin === true);
+          setIsPremium(data.has_upgraded === true);
+        }
       } else if (error) {
         console.error('Profile creation error:', error);
       }
@@ -442,12 +464,7 @@ export default function App() {
   }, [user]);
 
   async function loadTasks() {
-    if (!user) return;
-    const { data } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+    const { data } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
     if (data) setTasks(data);
   }
 
@@ -455,43 +472,18 @@ export default function App() {
     e.preventDefault();
     setIsAuthenticating(true);
 
-    // Add timeout alert if spinning too long
-    const timeoutId = setTimeout(() => {
-      if (isAuthenticating) {
-        alert('Database Resetting...');
-        window.location.reload();
-      }
-    }, 3000);
-
-    // Add bypass timeout for rod.puliceno@gmail.com
-    const bypassTimeoutId = setTimeout(() => {
-      if (email === 'rod.puliceno@gmail.com') {
-        console.log('BYPASS: Login timeout reached, activating admin bypass');
-        setUser({ email: 'rod.puliceno@gmail.com', id: 'admin-bypass' });
-        setIsAdmin(true);
-        setIsPremium(true);
-        setIsAuthenticating(false);
-      }
-    }, 5000);
-
     try {
-      console.log('AUTH: Attempting sign in with:', email);
       const { data, error: signInErr } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
-      console.log('AUTH: Sign in response:', { data, error: signInErr });
-
       if (signInErr) {
-        console.log('AUTH ERROR:', signInErr.message);
         if (signInErr.message.includes('Invalid login credentials')) {
-          console.log('AUTH: Invalid credentials, trying sign up');
           const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
             email,
             password
           });
-          console.log('AUTH: Sign up response:', { signUpData, signUpErr });
 
           if (signUpErr) {
             if (signUpErr.message.includes('User already registered')) {
@@ -501,23 +493,14 @@ export default function App() {
             }
             setIsAuthenticating(false);
           } else if (signUpData.user) {
-            setUser(signUpData.user);
             const userEmail = signUpData.user.email;
             const isRod = userEmail === 'rod.puliceno@gmail.com';
-
-            // For Rod, immediately set admin state
             if (isRod) {
               setIsAdmin(true);
               setIsPremium(true);
-              console.log('Admin access granted immediately for Rod on signup');
+              console.log('Admin access granted immediately for Rod');
             }
-
             await fetchProfile(signUpData.user.id);
-
-            // Force refresh profile after a short delay to ensure DB trigger has run
-            setTimeout(async () => {
-              await fetchProfile(signUpData.user.id);
-            }, 500);
           }
         } else {
           alert(signInErr.message);
@@ -526,30 +509,18 @@ export default function App() {
       } else if (data.user) {
         setUser(data.user);
         const isRod = data.user.email === 'rod.puliceno@gmail.com';
-
-        // For Rod, immediately set admin state
         if (isRod) {
           setIsAdmin(true);
           setIsPremium(true);
           console.log('Admin access granted immediately for Rod on sign in');
         }
-
         await fetchProfile(data.user.id);
-
-        // Force refresh profile after a short delay
-        setTimeout(async () => {
-          await fetchProfile(data.user.id);
-        }, 500);
-
         setIsAuthenticating(false);
       }
     } catch (error) {
-      console.error('AUTH EXCEPTION:', error);
+      console.error('Auth error:', error);
       alert('Authentication failed. Please try again.');
       setIsAuthenticating(false);
-    } finally {
-      clearTimeout(timeoutId);
-      clearTimeout(bypassTimeoutId);
     }
   }
 
@@ -568,13 +539,11 @@ export default function App() {
       alert("Error adding task: " + error.message);
     } else if (data) {
       console.log('Task added:', data);
+      setTasks([data, ...tasks]);
       setTaskInput('');
 
       // Update streak
       await updateStreak();
-
-      // Refresh tasks from database
-      await loadTasks();
     }
   }
 
@@ -600,19 +569,17 @@ export default function App() {
   }
 
   async function copyToClipboard(text: string, taskId: string) {
-    const brandedText = `${text}\n\n— Sent via Overly Literal 💅`;
+    const task = tasks.find(t => t.id === taskId);
+    const brandedText = `The Burden: ${task?.original_task}\n\nThe Translation: ${text}\n\n───────────────────\n— Generated by Overly Literal 🎭`;
     await navigator.clipboard.writeText(brandedText);
     setCopiedId(taskId);
-    setShowToast(true);
-    setTimeout(() => {
-      setCopiedId(null);
-      setShowToast(false);
-    }, 2000);
+    setTimeout(() => setCopiedId(null), 2000);
   }
 
-  function shareToTwitter(text: string) {
-    const brandedText = `${text}\n\n— Sent via Overly Literal 💅`;
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(brandedText)}`;
+  function shareToX(text: string, taskId: string) {
+    const task = tasks.find(t => t.id === taskId);
+    const shareText = `The Burden: ${task?.original_task}\n\nThe Translation: ${text}\n\n───────────────────\n— Generated by Overly Literal 🎭`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
     window.open(tweetUrl, '_blank', 'width=550,height=420');
   }
 
@@ -626,40 +593,15 @@ export default function App() {
           <input type="email" placeholder="EMAIL" className="w-full bg-transparent border-b border-white/20 p-2 font-mono text-xs focus:outline-none" value={email} onChange={e => setEmail(e.target.value)} required />
           <input type="password" placeholder="PASSWORD" className="w-full bg-transparent border-b border-white/20 p-2 font-mono text-xs focus:outline-none" value={password} onChange={e => setPassword(e.target.value)} required />
           <button disabled={isAuthenticating} className="w-full border border-white/40 py-4 font-mono text-[10px] tracking-widest hover:bg-white hover:text-black transition-all">
-            {isAuthenticating ? <Loader2 className="animate-spin mx-auto" size={16} /> : "SIGN IN / CREATE ACCOUNT"}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              localStorage.clear();
-              window.location.reload();
-            }}
-            className="w-full border border-red-500/30 py-3 font-mono text-[9px] tracking-widest text-red-400 hover:bg-red-500/10 transition-all"
-          >
-            RESET APP
+            {isAuthenticating ? <Loader2 className="animate-spin mx-auto" size={16} /> : "REQUEST ACCESS"}
           </button>
         </form>
-        <div className="mt-6 text-center text-white/40 font-mono text-[9px]">
-          Enter credentials to sign in or create a new account
-        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 font-mono text-xs tracking-wider shadow-lg z-50"
-          >
-            Copied to clipboard! ✨
-          </motion.div>
-        )}
-      </AnimatePresence>
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-16">
           <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
@@ -745,40 +687,33 @@ export default function App() {
                   animate={{ opacity: 1, x: 0, height: 'auto' }}
                   exit={{ opacity: 0, x: 20, height: 0 }}
                   transition={{ duration: 0.3, ease: 'easeOut' }}
-                  className="border border-white/10 p-5 group"
+                  className="border border-white/10 p-5 flex justify-between items-start group"
                 >
-                  <div className="flex flex-row items-center justify-between w-full mb-3">
-                    <div className="text-[10px] font-bold text-white uppercase tracking-widest opacity-50 px-2 py-1 bg-white/5 rounded">
-                      {t.persona}
-                    </div>
-                    <div className="flex flex-row gap-3 items-center">
-                      <button
-                        onClick={() => copyToClipboard(t.translated_text, t.id)}
-                        className="text-white/60 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] backdrop-blur-md transition-all"
-                        title="Copy to clipboard"
-                      >
-                        {copiedId === t.id ? <Check size={18} className="text-green-400" /> : <Copy size={18} />}
-                      </button>
-                      <a
-                        href={`https://x.com/intent/post?text=${encodeURIComponent(`${t.translated_text}\n\n— Sent via Overly Literal 💅`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-white/60 hover:text-blue-400 p-2 rounded-full bg-white/10 hover:bg-white/20 hover:shadow-[0_0_15px_rgba(96,165,250,0.3)] backdrop-blur-md transition-all inline-flex items-center justify-center"
-                        title="Share to X/Twitter"
-                      >
-                        <ExternalLink size={18} />
-                      </a>
-                      <button
-                        onClick={() => supabase.from('tasks').delete().eq('id', t.id).then(loadTasks)}
-                        className="text-white/60 hover:text-red-400 p-2 rounded-full bg-white/10 hover:bg-white/20 hover:shadow-[0_0_15px_rgba(248,113,113,0.3)] backdrop-blur-md transition-all"
-                        title="Delete task"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+                  <div className="flex-1">
+                    <div className="text-sm leading-relaxed">{t.translated_text}</div>
                   </div>
-                  <div className="w-full pt-2">
-                    <div className="text-sm leading-relaxed break-words">{t.translated_text}</div>
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => copyToClipboard(t.translated_text, t.id)}
+                      className="text-white/5 group-hover:text-white/40 hover:text-white p-1 transition-colors"
+                      title="Copy to clipboard"
+                    >
+                      {copiedId === t.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                    </button>
+                    <button
+                      onClick={() => shareToX(t.translated_text, t.id)}
+                      className="text-white/5 group-hover:text-white/40 hover:text-blue-400 p-1 transition-colors"
+                      title="Share to X"
+                    >
+                      <Share2 size={14} />
+                    </button>
+                    <button
+                      onClick={() => supabase.from('tasks').delete().eq('id', t.id).then(loadTasks)}
+                      className="text-white/5 group-hover:text-white/40 hover:text-red-400 p-1 transition-colors"
+                      title="Delete task"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </motion.div>
               ))}
