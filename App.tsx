@@ -476,30 +476,37 @@ export default function App() {
       });
 
       if (signInErr) {
-        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-          email,
-          password
-        });
+        if (signInErr.message.includes('Invalid login credentials')) {
+          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            email,
+            password
+          });
 
-        if (signUpErr) {
-          if (signUpErr.message.includes('User already registered')) {
-            alert('Invalid email or password');
-          } else {
+          if (signUpErr) {
             alert(signUpErr.message);
+            setIsAuthenticating(false);
+          } else if (signUpData.user) {
+            const userEmail = signUpData.user.email;
+            const isRod = userEmail === 'rod.puliceno@gmail.com';
+            if (isRod) {
+              setIsAdmin(true);
+              setIsPremium(true);
+              console.log('Admin access granted immediately for Rod');
+            }
+            await fetchProfile(signUpData.user.id);
           }
+        } else {
+          alert(signInErr.message);
           setIsAuthenticating(false);
-        } else if (signUpData.user) {
-          const userEmail = signUpData.user.email;
-          const isRod = userEmail === 'rod.puliceno@gmail.com';
-          if (isRod) {
-            setIsAdmin(true);
-            setIsPremium(true);
-            console.log('Admin access granted immediately for Rod');
-          }
-          await fetchProfile(signUpData.user.id);
         }
       } else if (data.user) {
         setUser(data.user);
+        const isRod = data.user.email === 'rod.puliceno@gmail.com';
+        if (isRod) {
+          setIsAdmin(true);
+          setIsPremium(true);
+          console.log('Admin access granted immediately for Rod on sign in');
+        }
         await fetchProfile(data.user.id);
         setIsAuthenticating(false);
       }
