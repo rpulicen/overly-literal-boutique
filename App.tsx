@@ -483,7 +483,11 @@ export default function App() {
           });
 
           if (signUpErr) {
-            alert(signUpErr.message);
+            if (signUpErr.message.includes('User already registered')) {
+              alert('Account exists but wrong password. Please try again with the correct password.');
+            } else {
+              alert(signUpErr.message);
+            }
             setIsAuthenticating(false);
           } else if (signUpData.user) {
             const userEmail = signUpData.user.email;
