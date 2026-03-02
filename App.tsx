@@ -140,20 +140,23 @@ function getTaskTranslation(task: string, mode: string): string {
       finish: "close out"
     },
     cheerleader: {
-      milk: "divine elixir",
+      milk: "divine calcium elixir",
       gym: "the Vitality Shrine",
-      work: "building your empire",
-      sleep: "your beauty restoration ritual",
+      work: "your empire",
+      sleep: "beauty restoration ritual",
       email: "iconic correspondence",
       buy: "manifest",
-      get: "absolutely SLAY",
+      get: "secure",
       go: "grace with your presence",
       meeting: "power circle",
-      report: "masterpiece",
+      report: "masterpiece document",
       call: "connect with",
-      send: "deliver fabulousness to",
-      clean: "bless this space",
-      finish: "absolutely DEVOUR"
+      send: "deliver your fabulousness to",
+      clean: "bless",
+      finish: "absolutely DEVOUR",
+      do: "handle",
+      tax: "taxes",
+      taxes: "those taxes like the boss you are"
     }
   };
 
@@ -190,18 +193,19 @@ function getTaskTranslation(task: string, mode: string): string {
       "have to": "is mandated to"
     },
     cheerleader: {
-      "i need to": "you are going to go",
-      "i have to": "you GET to go",
-      "i should": "you will absolutely",
+      "i need to": "you are going to",
+      "i have to": "you GET to",
+      "i should": "you will",
       "i want to": "you're going to",
       "need to": "are going to",
-      "have to": "GET to"
+      "have to": "GET to",
+      "go to": "grace with your presence",
+      "go to the": "grace with your presence at"
     }
   };
 
   if (mode === 'standard') {
-    const capitalizedTask = task.charAt(0).toUpperCase() + task.slice(1);
-    return `Task logged. Proceed with: ${capitalizedTask}`;
+    return `Task: ${task}`;
   }
 
   const mapping = keywordMappings[mode] || {};
@@ -253,6 +257,10 @@ function getTaskTranslation(task: string, mode: string): string {
   }
 
   if (mode === 'cheerleader') {
+    // Clean up awkward phrasing
+    transformed = transformed.replace(/\bwhile you\b/gi, 'and');
+    transformed = transformed.replace(/\band and\b/gi, 'and');
+
     transformed = transformed.charAt(0).toUpperCase() + transformed.slice(1);
     const endings = ["Slay, bestie! 💅✨", "That's iconic behavior! ✨", "Main character energy only! 💅", "Absolutely DEVOUR this! ✨💅"];
     const ending = endings[Math.floor(Math.random() * endings.length)];
