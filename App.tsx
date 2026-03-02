@@ -396,6 +396,7 @@ export default function App() {
 
         setIsAdmin(adminStatus);
         setIsPremium(premiumStatus);
+        setProfile(data);
 
         console.log('Admin status set to:', adminStatus);
         console.log('Premium status set to:', premiumStatus);
@@ -421,6 +422,7 @@ export default function App() {
         console.log('Profile already exists:', existingProfile);
         setIsAdmin(existingProfile.is_admin === true);
         setIsPremium(existingProfile.has_upgraded === true);
+        setProfile(existingProfile);
         return;
       }
 
@@ -440,6 +442,7 @@ export default function App() {
 
       if (!error && data) {
         console.log('Profile created:', data);
+        setProfile(data);
         if (isRod) {
           setIsAdmin(true);
           setIsPremium(true);
@@ -552,8 +555,16 @@ export default function App() {
     if (error) {
       console.error('Streak update error:', error);
     } else if (data !== null) {
-      // Trigger animation by updating profile
-      setProfile(prev => prev ? { ...prev, streak_count: data } : null);
+      // Fetch updated profile to get the new streak count
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+      }
     }
   }
 
@@ -595,17 +606,25 @@ export default function App() {
         <div className="flex justify-between items-center mb-16">
           <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
           <div className="flex gap-4 items-center">
-            {profile && profile.streak_count > 0 && (
+            {profile && (
               <motion.div
                 key={profile.streak_count}
                 initial={{ scale: 1 }}
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 0.3 }}
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
                 className="flex items-center gap-2 px-3 py-1 border border-orange-500/30 bg-orange-500/5"
               >
                 <span className="font-mono text-sm font-bold text-orange-400">{profile.streak_count}</span>
                 <span className="font-mono text-xs text-orange-400/60">DAY STREAK</span>
-                <span className="text-base">🔥</span>
+                <motion.span
+                  key={`fire-${profile.streak_count}`}
+                  initial={{ scale: 1 }}
+                  animate={{ scale: [1, 1.5, 1] }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="text-base"
+                >
+                  🔥
+                </motion.span>
               </motion.div>
             )}
             {isAdmin && <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="text-[#00FF41] font-mono text-[10px] border border-[#00FF41] px-2 py-1 hover:bg-[#00FF41] hover:text-black transition-all">ADMIN</button>}
