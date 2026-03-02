@@ -705,13 +705,13 @@ export default function App() {
                   className="border border-white/10 p-5 group"
                 >
                   <div className="flex flex-row items-center justify-between w-full mb-3">
-                    <div className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                    <div className="text-[10px] font-bold text-white uppercase tracking-widest opacity-50">
                       {t.persona}
                     </div>
                     <div className="flex flex-row gap-3 items-center">
                       <button
                         onClick={() => copyToClipboard(t.translated_text, t.id)}
-                        className="text-white/60 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all"
+                        className="text-white/60 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 hover:shadow-lg backdrop-blur-md transition-all"
                         title="Copy to clipboard"
                       >
                         {copiedId === t.id ? <Check size={18} className="text-green-400" /> : <Copy size={18} />}
@@ -720,14 +720,14 @@ export default function App() {
                         href={`https://x.com/intent/post?text=${encodeURIComponent(`${t.translated_text}\n\n— Sent via Overly Literal 💅`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-white/60 hover:text-blue-400 p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all inline-flex items-center justify-center"
+                        className="text-white/60 hover:text-blue-400 p-2 rounded-full bg-white/10 hover:bg-white/20 hover:shadow-lg backdrop-blur-md transition-all inline-flex items-center justify-center"
                         title="Share to X/Twitter"
                       >
                         <ExternalLink size={18} />
                       </a>
                       <button
                         onClick={() => supabase.from('tasks').delete().eq('id', t.id).then(loadTasks)}
-                        className="text-white/60 hover:text-red-400 p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all"
+                        className="text-white/60 hover:text-red-400 p-2 rounded-full bg-white/10 hover:bg-white/20 hover:shadow-lg backdrop-blur-md transition-all"
                         title="Delete task"
                       >
                         <Trash2 size={18} />
