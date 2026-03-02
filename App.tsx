@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, LogOut, Loader2, Lock, Shield, Copy, Check, Share2 } from 'lucide-react';
+import { Trash2, Plus, LogOut, Loader2, Lock, Shield, Copy, Check, Share2, ExternalLink } from 'lucide-react';
 import { supabase } from './src/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -569,29 +569,21 @@ export default function App() {
     }
   }
 
-  async function shareTask(text: string, taskId: string) {
+  async function copyToClipboard(text: string, taskId: string) {
     const brandedText = `${text}\n\n— Sent via Overly Literal 💅`;
+    await navigator.clipboard.writeText(brandedText);
+    setCopiedId(taskId);
+    setShowToast(true);
+    setTimeout(() => {
+      setCopiedId(null);
+      setShowToast(false);
+    }, 2000);
+  }
 
-    // Check if mobile native share is available
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          text: brandedText
-        });
-      } catch (err) {
-        // User cancelled share or error occurred
-        console.log('Share cancelled or failed:', err);
-      }
-    } else {
-      // Fallback to clipboard copy on desktop
-      await navigator.clipboard.writeText(brandedText);
-      setCopiedId(taskId);
-      setShowToast(true);
-      setTimeout(() => {
-        setCopiedId(null);
-        setShowToast(false);
-      }, 2000);
-    }
+  function shareToTwitter(text: string) {
+    const brandedText = `${text}\n\n— Sent via Overly Literal 💅`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(brandedText)}`;
+    window.open(tweetUrl, '_blank', 'width=550,height=420');
   }
 
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white font-mono text-xs uppercase tracking-widest">Initialising...</div>;
@@ -616,10 +608,10 @@ export default function App() {
       <AnimatePresence>
         {showToast && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-8 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 font-mono text-xs tracking-wider shadow-lg z-50"
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 font-mono text-xs tracking-wider shadow-lg z-50"
           >
             Copied to clipboard! ✨
           </motion.div>
@@ -710,25 +702,32 @@ export default function App() {
                   animate={{ opacity: 1, x: 0, height: 'auto' }}
                   exit={{ opacity: 0, x: 20, height: 0 }}
                   transition={{ duration: 0.3, ease: 'easeOut' }}
-                  className="border border-white/10 p-5 flex justify-between items-start group"
+                  className="border border-white/10 p-5 relative group"
                 >
-                  <div className="flex-1">
+                  <div className="pr-20">
                     <div className="text-sm leading-relaxed">{t.translated_text}</div>
                   </div>
-                  <div className="flex gap-2 ml-4">
+                  <div className="absolute bottom-4 right-4 flex gap-2">
                     <button
-                      onClick={() => shareTask(t.translated_text, t.id)}
-                      className="text-white/5 group-hover:text-white/40 hover:text-white p-1 transition-colors"
-                      title="Share"
+                      onClick={() => copyToClipboard(t.translated_text, t.id)}
+                      className="text-white/20 hover:text-white p-1.5 transition-colors"
+                      title="Copy to clipboard"
                     >
-                      {copiedId === t.id ? <Check size={14} className="text-green-400" /> : <Share2 size={14} />}
+                      {copiedId === t.id ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+                    </button>
+                    <button
+                      onClick={() => shareToTwitter(t.translated_text)}
+                      className="text-white/20 hover:text-blue-400 p-1.5 transition-colors"
+                      title="Share to X/Twitter"
+                    >
+                      <ExternalLink size={16} />
                     </button>
                     <button
                       onClick={() => supabase.from('tasks').delete().eq('id', t.id).then(loadTasks)}
-                      className="text-white/5 group-hover:text-white/40 hover:text-red-400 p-1 transition-colors"
+                      className="text-white/20 hover:text-red-400 p-1.5 transition-colors"
                       title="Delete task"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </motion.div>
