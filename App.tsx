@@ -704,33 +704,33 @@ export default function App() {
                   transition={{ duration: 0.3, ease: 'easeOut' }}
                   className="border border-white/10 p-5 relative group"
                 >
-                  <div className="absolute top-3 right-3 flex gap-2 z-50">
+                  <div className="absolute top-3 right-3 flex flex-row gap-3 items-center z-50">
                     <button
                       onClick={() => copyToClipboard(t.translated_text, t.id)}
-                      className="text-white/60 hover:text-white p-2 transition-colors bg-black/20 backdrop-blur-sm"
+                      className="text-white/60 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all"
                       title="Copy to clipboard"
                     >
-                      {copiedId === t.id ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
+                      {copiedId === t.id ? <Check size={18} className="text-green-400" /> : <Copy size={18} />}
                     </button>
                     <a
                       href={`https://x.com/intent/post?text=${encodeURIComponent(`${t.translated_text}\n\n— Sent via Overly Literal 💅`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-white/60 hover:text-blue-400 p-2 transition-colors bg-black/20 backdrop-blur-sm inline-flex items-center justify-center"
+                      className="text-white/60 hover:text-blue-400 p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all inline-flex items-center justify-center"
                       title="Share to X/Twitter"
                     >
-                      <ExternalLink size={20} />
+                      <ExternalLink size={18} />
                     </a>
                     <button
                       onClick={() => supabase.from('tasks').delete().eq('id', t.id).then(loadTasks)}
-                      className="text-white/60 hover:text-red-400 p-2 transition-colors bg-black/20 backdrop-blur-sm"
+                      className="text-white/60 hover:text-red-400 p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all"
                       title="Delete task"
                     >
-                      <Trash2 size={20} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
-                  <div className="pr-16">
-                    <div className="text-sm leading-relaxed">{t.translated_text}</div>
+                  <div className="pr-20">
+                    <div className="text-sm leading-relaxed break-words">{t.translated_text}</div>
                   </div>
                 </motion.div>
               ))}
