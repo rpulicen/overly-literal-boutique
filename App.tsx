@@ -90,11 +90,157 @@ function AdminPanel() {
 }
 
 function getTaskTranslation(task: string, mode: string): string {
-  const t = task.toUpperCase();
-  if (mode === 'pirate') return `ARRR! YE BE NEEDIN' TO ${t} AFORE THE SHARKS GET YE!`;
-  if (mode === 'shakespeare') return `Hark! It is thy destiny to undertake the task of ${task}.`;
-  if (mode === 'manager') return `PER Q4 GUIDELINES: ${t} IS NOW CRITICAL PATH.`;
-  if (mode === 'cheerleader') return `OMG! YOU ARE GOING TO ABSOLUTELY CRUSH ${t}! GO TEAM!`;
+  const keywordMappings: Record<string, Record<string, string>> = {
+    pirate: {
+      milk: "white nectar",
+      gym: "battle training grounds",
+      work: "pillage duties",
+      sleep: "rest in yer bunk",
+      email: "message in a bottle",
+      buy: "plunder",
+      get: "acquire",
+      go: "sail",
+      meeting: "crew gathering",
+      report: "ship's log",
+      call: "hail",
+      send: "dispatch",
+      clean: "swab",
+      finish: "complete the voyage"
+    },
+    shakespeare: {
+      milk: "dairy sustenance",
+      gym: "arena of physical toil",
+      work: "labour most earnest",
+      sleep: "surrender to slumber",
+      email: "correspondence most urgent",
+      buy: "procure",
+      get: "obtain",
+      go: "venture forth",
+      meeting: "gathering of minds",
+      report: "document of record",
+      call: "summon",
+      send: "dispatch",
+      clean: "purify",
+      finish: "bring to completion"
+    },
+    manager: {
+      milk: "liquid assets",
+      gym: "wellness optimization session",
+      work: "deliverables",
+      sleep: "offline period",
+      email: "stakeholder communication",
+      buy: "procure",
+      get: "action",
+      go: "transition",
+      meeting: "sync",
+      report: "deck",
+      call: "touch base",
+      send: "push",
+      clean: "optimize",
+      finish: "close out"
+    },
+    cheerleader: {
+      milk: "calcium power fuel",
+      gym: "vitality session",
+      work: "success mission",
+      sleep: "dream achievement time",
+      email: "amazing message",
+      buy: "score",
+      get: "WIN",
+      go: "ROCK",
+      meeting: "power huddle",
+      report: "victory document",
+      call: "connect",
+      send: "blast",
+      clean: "sparkle up",
+      finish: "NAIL IT"
+    }
+  };
+
+  const sentenceStarters: Record<string, string[]> = {
+    pirate: ["ARRR!", "AVAST!", "SHIVER ME TIMBERS!", "BLOW ME DOWN!"],
+    shakespeare: ["Hark!", "Lo!", "Verily,", "Prithee,"],
+    manager: ["PER Q4 GUIDELINES:", "ACTION REQUIRED:", "FYI:", "URGENT:"],
+    cheerleader: ["OMG!", "WOW!", "YES!", "YOU GOT THIS!"]
+  };
+
+  const actionPhrases: Record<string, Record<string, string>> = {
+    pirate: {
+      "i need to": "ye must",
+      "i have to": "ye be required to",
+      "i should": "ye ought to",
+      "i want to": "ye be wishin' to",
+      "need to": "must",
+      "have to": "be required to"
+    },
+    shakespeare: {
+      "i need to": "thou must",
+      "i have to": "it is thy duty to",
+      "i should": "thou ought",
+      "i want to": "thou desirest to",
+      "need to": "must",
+      "have to": "art required to"
+    },
+    manager: {
+      "i need to": "the board of directors requires",
+      "i have to": "per executive mandate we must",
+      "i should": "best practice dictates we",
+      "i want to": "strategic initiative to",
+      "need to": "requires immediate action to",
+      "have to": "is mandated to"
+    },
+    cheerleader: {
+      "i need to": "YOU'RE TOTALLY GONNA",
+      "i have to": "YOU GET TO",
+      "i should": "YOU'LL AMAZINGLY",
+      "i want to": "YOU'RE GONNA ROCK AT",
+      "need to": "get to",
+      "have to": "are BLESSED to"
+    }
+  };
+
+  if (mode === 'standard') {
+    return `Execute the following objective: ${task}.`;
+  }
+
+  const mapping = keywordMappings[mode] || {};
+  const starters = sentenceStarters[mode] || [];
+  const actions = actionPhrases[mode] || {};
+
+  let transformed = task.toLowerCase();
+
+  Object.entries(actions).forEach(([phrase, replacement]) => {
+    const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
+    transformed = transformed.replace(regex, replacement);
+  });
+
+  Object.entries(mapping).forEach(([word, replacement]) => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    transformed = transformed.replace(regex, replacement);
+  });
+
+  const starter = starters[Math.floor(Math.random() * starters.length)] || '';
+
+  if (mode === 'pirate') {
+    transformed = transformed.charAt(0).toUpperCase() + transformed.slice(1);
+    return `${starter} ${transformed} afore the sharks get ye!`;
+  }
+
+  if (mode === 'shakespeare') {
+    transformed = transformed.charAt(0).toUpperCase() + transformed.slice(1);
+    return `${starter} ${transformed}, lest fortune abandon thee.`;
+  }
+
+  if (mode === 'manager') {
+    transformed = transformed.toUpperCase();
+    return `${starter} ${transformed} IS NOW CRITICAL PATH.`;
+  }
+
+  if (mode === 'cheerleader') {
+    transformed = transformed.toUpperCase();
+    return `${starter} ${transformed}! YOU'RE GONNA CRUSH IT! 🎉`;
+  }
+
   return `Execute the following objective: ${task}.`;
 }
 
