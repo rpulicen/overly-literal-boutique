@@ -476,6 +476,14 @@ export default function App() {
     e.preventDefault();
     setIsAuthenticating(true);
 
+    // Add timeout alert if spinning too long
+    const timeoutId = setTimeout(() => {
+      if (isAuthenticating) {
+        alert('Database Resetting...');
+        window.location.reload();
+      }
+    }, 3000);
+
     try {
       const { data, error: signInErr } = await supabase.auth.signInWithPassword({
         email,
@@ -543,6 +551,8 @@ export default function App() {
       console.error('Auth error:', error);
       alert('Authentication failed. Please try again.');
       setIsAuthenticating(false);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
