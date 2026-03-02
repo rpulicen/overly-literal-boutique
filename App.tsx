@@ -704,30 +704,32 @@ export default function App() {
                   transition={{ duration: 0.3, ease: 'easeOut' }}
                   className="border border-white/10 p-5 relative group"
                 >
-                  <div className="absolute top-4 right-4 flex gap-2">
+                  <div className="absolute top-3 right-3 flex gap-2 z-50">
                     <button
                       onClick={() => copyToClipboard(t.translated_text, t.id)}
-                      className="text-white/20 hover:text-white p-2 transition-colors"
+                      className="text-white/60 hover:text-white p-2 transition-colors bg-black/20 backdrop-blur-sm"
                       title="Copy to clipboard"
                     >
                       {copiedId === t.id ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
                     </button>
-                    <button
-                      onClick={() => shareToTwitter(t.translated_text)}
-                      className="text-white/20 hover:text-blue-400 p-2 transition-colors"
+                    <a
+                      href={`https://x.com/intent/post?text=${encodeURIComponent(`${t.translated_text}\n\n— Sent via Overly Literal 💅`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white/60 hover:text-blue-400 p-2 transition-colors bg-black/20 backdrop-blur-sm inline-flex items-center justify-center"
                       title="Share to X/Twitter"
                     >
                       <ExternalLink size={20} />
-                    </button>
+                    </a>
                     <button
                       onClick={() => supabase.from('tasks').delete().eq('id', t.id).then(loadTasks)}
-                      className="text-white/20 hover:text-red-400 p-2 transition-colors"
+                      className="text-white/60 hover:text-red-400 p-2 transition-colors bg-black/20 backdrop-blur-sm"
                       title="Delete task"
                     >
                       <Trash2 size={20} />
                     </button>
                   </div>
-                  <div className="pr-12">
+                  <div className="pr-16">
                     <div className="text-sm leading-relaxed">{t.translated_text}</div>
                   </div>
                 </motion.div>
