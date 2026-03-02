@@ -115,17 +115,19 @@ export default function App() {
   useEffect(() => {
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        setUser(session.user);
-        await fetchProfile(session.user.id);
-        setIsAuthenticating(false);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setIsAdmin(false);
-        setIsPremium(false);
-        setTasks([]);
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      (async () => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+          setIsAuthenticating(false);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setIsAdmin(false);
+          setIsPremium(false);
+          setTasks([]);
+        }
+      })();
     });
 
     return () => subscription.unsubscribe();
@@ -154,6 +156,7 @@ export default function App() {
 
   async function fetchProfile(uid: string) {
     try {
+      console.log('Fetching profile for uid:', uid);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -167,10 +170,17 @@ export default function App() {
       }
 
       if (data) {
-        console.log('Profile loaded:', data);
-        setIsAdmin(data.is_admin === true);
-        setIsPremium(data.has_upgraded === true);
+        console.log('Profile loaded successfully:', data);
+        const adminStatus = data.is_admin === true;
+        const premiumStatus = data.has_upgraded === true;
+
+        setIsAdmin(adminStatus);
+        setIsPremium(premiumStatus);
+
+        console.log('Admin status set to:', adminStatus);
+        console.log('Premium status set to:', premiumStatus);
       } else {
+        console.log('No profile found, creating new profile');
         await createProfile(uid);
       }
     } catch (error) {
@@ -254,7 +264,9 @@ export default function App() {
           await fetchProfile(signUpData.user.id);
         }
       } else if (data.user) {
+        setUser(data.user);
         await fetchProfile(data.user.id);
+        setIsAuthenticating(false);
       }
     } catch (error) {
       console.error('Auth error:', error);
