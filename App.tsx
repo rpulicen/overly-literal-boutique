@@ -17,6 +17,8 @@ interface Profile {
   is_admin: boolean;
   has_upgraded: boolean;
   created_at: string;
+  streak_count: number;
+  last_task_date: string | null;
 }
 
 function AdminPanel() {
@@ -509,6 +511,22 @@ export default function App() {
       console.log('Task added:', data);
       setTasks([data, ...tasks]);
       setTaskInput('');
+
+      // Update streak
+      await updateStreak();
+    }
+  }
+
+  async function updateStreak() {
+    if (!user) return;
+
+    const { data, error } = await supabase.rpc('update_user_streak', { user_id: user.id });
+
+    if (error) {
+      console.error('Streak update error:', error);
+    } else if (data !== null) {
+      // Trigger animation by updating profile
+      setProfile(prev => prev ? { ...prev, streak_count: data } : null);
     }
   }
 
@@ -549,7 +567,20 @@ export default function App() {
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-16">
           <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
+            {profile && profile.streak_count > 0 && (
+              <motion.div
+                key={profile.streak_count}
+                initial={{ scale: 1 }}
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center gap-2 px-3 py-1 border border-orange-500/30 bg-orange-500/5"
+              >
+                <span className="font-mono text-sm font-bold text-orange-400">{profile.streak_count}</span>
+                <span className="font-mono text-xs text-orange-400/60">DAY STREAK</span>
+                <span className="text-base">🔥</span>
+              </motion.div>
+            )}
             {isAdmin && <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="text-[#00FF41] font-mono text-[10px] border border-[#00FF41] px-2 py-1 hover:bg-[#00FF41] hover:text-black transition-all">ADMIN</button>}
             <button onClick={() => supabase.auth.signOut()} className="text-white/30 hover:text-white"><LogOut size={20} /></button>
           </div>
