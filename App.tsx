@@ -330,6 +330,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     checkSession();
@@ -424,6 +425,8 @@ export default function App() {
       }
 
       const userEmail = user?.email || email;
+      const isRod = userEmail === 'rod.puliceno@gmail.com';
+
       const { data, error } = await supabase
         .from('profiles')
         .insert([{
@@ -437,8 +440,14 @@ export default function App() {
 
       if (!error && data) {
         console.log('Profile created:', data);
-        setIsAdmin(data.is_admin === true);
-        setIsPremium(data.has_upgraded === true);
+        if (isRod) {
+          setIsAdmin(true);
+          setIsPremium(true);
+          console.log('Admin access granted for Rod');
+        } else {
+          setIsAdmin(data.is_admin === true);
+          setIsPremium(data.has_upgraded === true);
+        }
       } else if (error) {
         console.error('Profile creation error:', error);
       }
@@ -480,6 +489,13 @@ export default function App() {
           }
           setIsAuthenticating(false);
         } else if (signUpData.user) {
+          const userEmail = signUpData.user.email;
+          const isRod = userEmail === 'rod.puliceno@gmail.com';
+          if (isRod) {
+            setIsAdmin(true);
+            setIsPremium(true);
+            console.log('Admin access granted immediately for Rod');
+          }
           await fetchProfile(signUpData.user.id);
         }
       } else if (data.user) {
