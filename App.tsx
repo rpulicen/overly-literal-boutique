@@ -616,9 +616,22 @@ export default function App() {
           <input type="email" placeholder="EMAIL" className="w-full bg-transparent border-b border-white/20 p-2 font-mono text-xs focus:outline-none" value={email} onChange={e => setEmail(e.target.value)} required />
           <input type="password" placeholder="PASSWORD" className="w-full bg-transparent border-b border-white/20 p-2 font-mono text-xs focus:outline-none" value={password} onChange={e => setPassword(e.target.value)} required />
           <button disabled={isAuthenticating} className="w-full border border-white/40 py-4 font-mono text-[10px] tracking-widest hover:bg-white hover:text-black transition-all">
-            {isAuthenticating ? <Loader2 className="animate-spin mx-auto" size={16} /> : "REQUEST ACCESS"}
+            {isAuthenticating ? <Loader2 className="animate-spin mx-auto" size={16} /> : "SIGN IN / CREATE ACCOUNT"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.clear();
+              window.location.reload();
+            }}
+            className="w-full border border-red-500/30 py-3 font-mono text-[9px] tracking-widest text-red-400 hover:bg-red-500/10 transition-all"
+          >
+            RESET APP
           </button>
         </form>
+        <div className="mt-6 text-center text-white/40 font-mono text-[9px]">
+          Enter credentials to sign in or create a new account
+        </div>
       </div>
     );
   }
