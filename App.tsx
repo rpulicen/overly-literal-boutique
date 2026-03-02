@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, LogOut, Loader2, Lock, Shield } from 'lucide-react';
+import { Trash2, Plus, LogOut, Loader2, Lock, Shield, Copy, Check } from 'lucide-react';
 import { supabase } from './src/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Task {
   id: string;
@@ -109,6 +110,7 @@ export default function App() {
   const [isPremium, setIsPremium] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     checkSession();
@@ -278,6 +280,12 @@ export default function App() {
     }
   }
 
+  async function copyToClipboard(text: string, taskId: string) {
+    await navigator.clipboard.writeText(text);
+    setCopiedId(taskId);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white font-mono text-xs uppercase tracking-widest">Initialising...</div>;
 
   if (!user) {
@@ -307,11 +315,27 @@ export default function App() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-8">
-          {['standard', 'pirate', 'shakespeare', 'manager', 'cheerleader'].map(m => {
-            const isLocked = m !== 'standard' && !isPremium;
+          {[
+            { key: 'standard', emoji: '📋', label: 'STANDARD' },
+            { key: 'pirate', emoji: '🏴‍☠️', label: 'PIRATE' },
+            { key: 'shakespeare', emoji: '🎭', label: 'SHAKESPEARE' },
+            { key: 'manager', emoji: '💼', label: 'MANAGER' },
+            { key: 'cheerleader', emoji: '📣', label: 'CHEERLEADER' }
+          ].map(({ key, emoji, label }) => {
+            const isLocked = key !== 'standard' && !isPremium;
+            const isActive = mode === key;
             return (
-              <button key={m} onClick={() => isLocked ? alert("Upgrade required") : setMode(m)} className={`px-4 py-1 text-[9px] font-mono border transition-all flex items-center gap-2 ${mode === m ? 'border-white text-white' : 'border-white/10 text-white/30'}`}>
-                {m.toUpperCase()}
+              <button
+                key={key}
+                onClick={() => isLocked ? alert("Upgrade required") : setMode(key)}
+                className={`px-4 py-2 text-[9px] font-mono border transition-all flex items-center gap-2 ${
+                  isActive
+                    ? 'border-white bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]'
+                    : 'border-white/10 text-white/30 hover:border-white/30'
+                }`}
+              >
+                <span className="text-sm">{emoji}</span>
+                {label}
                 {isLocked && <Lock size={10} />}
               </button>
             );
@@ -325,19 +349,51 @@ export default function App() {
           <button onClick={addTask} className="border border-white/40 px-8 py-2 hover:bg-white hover:text-black transition-all"><Plus size={18} /></button>
         </div>
 
-        <div className="space-y-6">
-          {tasks.map(t => (
-            <div key={t.id} className="border border-white/10 p-5 flex justify-between items-start group">
-              <div>
-                <div className="text-[9px] text-white/30 font-mono mb-2 uppercase">{t.original_task}</div>
-                <div className="text-sm leading-relaxed">{t.translated_text}</div>
-              </div>
-              <button onClick={() => supabase.from('tasks').delete().eq('id', t.id).then(loadTasks)} className="text-white/5 group-hover:text-white/40 hover:text-white p-1">
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
+        {tasks.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20"
+          >
+            <div className="text-6xl mb-4">✨</div>
+            <div className="text-xl text-white/50 font-mono">No burdens?</div>
+            <div className="text-3xl text-white font-bold mt-2">You're living the dream!</div>
+          </motion.div>
+        ) : (
+          <div className="space-y-6">
+            <AnimatePresence mode="popLayout">
+              {tasks.map(t => (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, x: -20, height: 0 }}
+                  animate={{ opacity: 1, x: 0, height: 'auto' }}
+                  exit={{ opacity: 0, x: 20, height: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="border border-white/10 p-5 flex justify-between items-start group"
+                >
+                  <div className="flex-1">
+                    <div className="text-[9px] text-white/30 font-mono mb-2 uppercase">{t.original_task}</div>
+                    <div className="text-sm leading-relaxed">{t.translated_text}</div>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => copyToClipboard(t.translated_text, t.id)}
+                      className="text-white/5 group-hover:text-white/40 hover:text-white p-1 transition-colors"
+                    >
+                      {copiedId === t.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                    </button>
+                    <button
+                      onClick={() => supabase.from('tasks').delete().eq('id', t.id).then(loadTasks)}
+                      className="text-white/5 group-hover:text-white/40 hover:text-red-400 p-1 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </div>
   );
