@@ -318,6 +318,8 @@ function getTaskTranslation(task: string, mode: string): string {
 }
 
 export default function App() {
+  window.localStorage.clear();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [user, setUser] = useState<any>(null);
@@ -342,6 +344,7 @@ export default function App() {
           setUser(session.user);
           await fetchProfile(session.user.id);
           setIsAuthenticating(false);
+          window.location.href = '/';
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setIsAdmin(false);
