@@ -465,7 +465,12 @@ export default function App() {
   }, [user]);
 
   async function loadTasks() {
-    const { data } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+    if (!user) return;
+    const { data } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
     if (data) setTasks(data);
   }
 
@@ -540,11 +545,13 @@ export default function App() {
       alert("Error adding task: " + error.message);
     } else if (data) {
       console.log('Task added:', data);
-      setTasks([data, ...tasks]);
       setTaskInput('');
 
       // Update streak
       await updateStreak();
+
+      // Refresh tasks from database
+      await loadTasks();
     }
   }
 
