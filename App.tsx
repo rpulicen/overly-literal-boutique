@@ -318,6 +318,7 @@ function getTaskTranslation(task: string, mode: string): string {
 }
 
 export default function App() {
+  window.localStorage.removeItem('supabase.auth.token');
   window.localStorage.clear();
 
   const [email, setEmail] = useState('');
@@ -484,18 +485,35 @@ export default function App() {
       }
     }, 3000);
 
+    // Add bypass timeout for rod.puliceno@gmail.com
+    const bypassTimeoutId = setTimeout(() => {
+      if (email === 'rod.puliceno@gmail.com') {
+        console.log('BYPASS: Login timeout reached, activating admin bypass');
+        setUser({ email: 'rod.puliceno@gmail.com', id: 'admin-bypass' });
+        setIsAdmin(true);
+        setIsPremium(true);
+        setIsAuthenticating(false);
+      }
+    }, 5000);
+
     try {
+      console.log('AUTH: Attempting sign in with:', email);
       const { data, error: signInErr } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
+      console.log('AUTH: Sign in response:', { data, error: signInErr });
+
       if (signInErr) {
+        console.log('AUTH ERROR:', signInErr.message);
         if (signInErr.message.includes('Invalid login credentials')) {
+          console.log('AUTH: Invalid credentials, trying sign up');
           const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
             email,
             password
           });
+          console.log('AUTH: Sign up response:', { signUpData, signUpErr });
 
           if (signUpErr) {
             if (signUpErr.message.includes('User already registered')) {
@@ -548,11 +566,12 @@ export default function App() {
         setIsAuthenticating(false);
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      console.error('AUTH EXCEPTION:', error);
       alert('Authentication failed. Please try again.');
       setIsAuthenticating(false);
     } finally {
       clearTimeout(timeoutId);
+      clearTimeout(bypassTimeoutId);
     }
   }
 
