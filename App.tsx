@@ -238,16 +238,20 @@ export default function App() {
       });
 
       if (signInErr) {
-        const { error: signUpErr } = await supabase.auth.signUp({
-          email,
-          password
-        });
+        if (signInErr.message.includes('Invalid login credentials')) {
+          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            email,
+            password
+          });
 
-        if (signUpErr) {
-          alert(signUpErr.message);
-          setIsAuthenticating(false);
+          if (signUpErr) {
+            alert(signUpErr.message);
+            setIsAuthenticating(false);
+          } else if (signUpData.user) {
+            await fetchProfile(signUpData.user.id);
+          }
         } else {
-          alert("Account created! You can now sign in.");
+          alert(signInErr.message);
           setIsAuthenticating(false);
         }
       } else if (data.user) {
