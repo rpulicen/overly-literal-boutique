@@ -690,6 +690,7 @@ export default function App() {
                   className="border border-white/10 p-5 flex justify-between items-start group"
                 >
                   <div className="flex-1">
+                    <div className="text-xs text-white/40 font-mono mb-2">THE BURDEN: {t.original_task}</div>
                     <div className="text-sm leading-relaxed">{t.translated_text}</div>
                   </div>
                   <div className="flex gap-2 ml-4">
