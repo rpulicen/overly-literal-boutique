@@ -92,52 +92,61 @@ function AdminPanel() {
 function getTaskTranslation(task: string, mode: string): string {
   const keywordMappings: Record<string, Record<string, string>> = {
     pirate: {
-      milk: "white nectar",
-      gym: "battle training grounds",
-      work: "pillage duties",
+      milk: "grog",
+      gym: "the battle training grounds",
+      work: "yer pillaging duties",
       sleep: "rest in yer bunk",
-      email: "message in a bottle",
+      email: "messages in bottles",
       buy: "plunder",
-      get: "acquire",
-      go: "sail",
+      get: "seize",
+      go: "set sail for",
       meeting: "crew gathering",
       report: "ship's log",
       call: "hail",
-      send: "dispatch",
+      send: "dispatch across the seven seas",
       clean: "swab",
-      finish: "complete the voyage"
+      finish: "complete yer voyage of",
+      do: "prepare for battle with",
+      tax: "the tax collectors",
+      taxes: "those scurvy tax collectors"
     },
     shakespeare: {
-      milk: "dairy sustenance",
-      gym: "arena of physical toil",
-      work: "labour most earnest",
-      sleep: "surrender to slumber",
-      email: "correspondence most urgent",
-      buy: "procure",
-      get: "obtain",
-      go: "venture forth",
-      meeting: "gathering of minds",
-      report: "document of record",
-      call: "summon",
-      send: "dispatch",
-      clean: "purify",
-      finish: "bring to completion"
+      milk: "the white elixir of life",
+      gym: "the arena where mortal flesh is tested",
+      work: "thy most grievous labour",
+      sleep: "surrender thy mortal coil to slumber",
+      email: "most urgent correspondence",
+      buy: "procure with thy coin",
+      get: "seize upon",
+      go: "venture forth unto",
+      meeting: "fateful gathering",
+      report: "scroll of grave import",
+      call: "summon with great urgency",
+      send: "dispatch posthaste",
+      clean: "purge of all corruption",
+      finish: "bring to its inevitable conclusion",
+      do: "face thy destiny with",
+      tax: "the tax burden",
+      taxes: "those most cruel taxes that plague thee"
     },
     manager: {
-      milk: "liquid assets",
-      gym: "wellness optimization session",
-      work: "deliverables",
-      sleep: "offline period",
-      email: "stakeholder communication",
-      buy: "procure",
+      milk: "calcium-based liquid assets",
+      gym: "mandatory wellness optimization session",
+      work: "core deliverables",
+      sleep: "scheduled offline period",
+      email: "mission-critical stakeholder communications",
+      buy: "leverage budget allocation for",
       get: "action",
-      go: "transition",
-      meeting: "sync",
-      report: "deck",
-      call: "touch base",
-      send: "push",
-      clean: "optimize",
-      finish: "close out"
+      go: "align bandwidth with",
+      meeting: "high-priority sync",
+      report: "quarterly deck",
+      call: "circle back with",
+      send: "cascade information to",
+      clean: "streamline and optimize",
+      finish: "sunset the initiative around",
+      do: "leverage synergies with",
+      tax: "fiscal compliance obligations",
+      taxes: "those tax compliance deliverables per executive mandate"
     },
     cheerleader: {
       milk: "divine calcium elixir",
@@ -161,36 +170,39 @@ function getTaskTranslation(task: string, mode: string): string {
   };
 
   const sentenceStarters: Record<string, string[]> = {
-    pirate: ["ARRR!", "AVAST!", "SHIVER ME TIMBERS!", "BLOW ME DOWN!"],
-    shakespeare: ["Hark!", "Lo!", "Verily,", "Prithee,"],
-    manager: ["PER Q4 GUIDELINES:", "ACTION REQUIRED:", "FYI:", "URGENT:"],
+    pirate: ["ARRR, matey!", "AVAST, ye scallywag!", "SHIVER ME TIMBERS!", "BLOW ME DOWN!", "BY BLACKBEARD'S BEARD!"],
+    shakespeare: ["Hark!", "Lo, what torment awaits!", "Verily, the hour is upon thee!", "Prithee,", "Alas!", "Forsooth!"],
+    manager: ["RE: URGENT -", "PER MY LAST EMAIL:", "ACTION REQUIRED:", "FYI -", "CIRCLING BACK:", "LOOPING YOU IN:"],
     cheerleader: ["Umm, excuse me?!", "ICONIC!", "Main character energy!", "Listen bestie,"]
   };
 
   const actionPhrases: Record<string, Record<string, string>> = {
     pirate: {
-      "i need to": "ye must",
-      "i have to": "ye be required to",
+      "i need to": "ye must set sail to",
+      "i have to": "the captain orders ye to",
       "i should": "ye ought to",
       "i want to": "ye be wishin' to",
       "need to": "must",
-      "have to": "be required to"
+      "have to": "be commanded to",
+      "going to": "settin' sail to"
     },
     shakespeare: {
-      "i need to": "thou must",
-      "i have to": "it is thy duty to",
-      "i should": "thou ought",
-      "i want to": "thou desirest to",
-      "need to": "must",
-      "have to": "art required to"
+      "i need to": "thou must forthwith",
+      "i have to": "'tis thy solemn duty to",
+      "i should": "thou must needs",
+      "i want to": "thou desirest most urgently to",
+      "need to": "must with haste",
+      "have to": "art bound by fate to",
+      "going to": "shall venture forth to"
     },
     manager: {
-      "i need to": "the board of directors requires",
-      "i have to": "per executive mandate we must",
+      "i need to": "per our last standup, we need to align bandwidth to",
+      "i have to": "the board requires us to leverage synergies with",
       "i should": "best practice dictates we",
-      "i want to": "strategic initiative to",
-      "need to": "requires immediate action to",
-      "have to": "is mandated to"
+      "i want to": "let's touch base offline and",
+      "need to": "requires immediate bandwidth allocation to",
+      "have to": "per executive mandate must",
+      "going to": "will circle back to"
     },
     cheerleader: {
       "i need to": "you are going to",
@@ -242,18 +254,51 @@ function getTaskTranslation(task: string, mode: string): string {
   const starter = starters[Math.floor(Math.random() * starters.length)] || '';
 
   if (mode === 'pirate') {
+    // Clean up awkward phrasing
+    transformed = transformed.replace(/\bwhile you\b/gi, 'whilst ye');
+    transformed = transformed.replace(/\band and\b/gi, 'and');
+
     transformed = transformed.charAt(0).toUpperCase() + transformed.slice(1);
-    return `${starter} ${transformed} afore the sharks get ye!`;
+    const endings = [
+      "or ye'll be walkin' the plank!",
+      "afore Davy Jones claims ye!",
+      "lest the Kraken drag ye down!",
+      "or surrender yer booty to the sea!"
+    ];
+    const ending = endings[Math.floor(Math.random() * endings.length)];
+    return `${starter} ${transformed}, ${ending}`;
   }
 
   if (mode === 'shakespeare') {
+    // Clean up awkward phrasing
+    transformed = transformed.replace(/\bwhile you\b/gi, 'whilst thou');
+    transformed = transformed.replace(/\band and\b/gi, 'and');
+
     transformed = transformed.charAt(0).toUpperCase() + transformed.slice(1);
-    return `${starter} ${transformed}, lest fortune abandon thee.`;
+    const endings = [
+      "lest thou meet thy doom!",
+      "ere darkness consumes thee!",
+      "for time's winged chariot hurries near!",
+      "or face thy tragic end!"
+    ];
+    const ending = endings[Math.floor(Math.random() * endings.length)];
+    return `${starter} ${transformed}, ${ending}`;
   }
 
   if (mode === 'manager') {
+    // Clean up awkward phrasing
+    transformed = transformed.replace(/\bwhile you\b/gi, 'as we');
+    transformed = transformed.replace(/\band and\b/gi, 'and');
+
     transformed = transformed.toUpperCase();
-    return `${starter} ${transformed} IS NOW CRITICAL PATH.`;
+    const endings = [
+      "IS NOW CRITICAL PATH.",
+      "REQUIRES IMMEDIATE STAKEHOLDER ALIGNMENT.",
+      "- LET'S TAKE THIS OFFLINE.",
+      "PER EXECUTIVE DIRECTIVE."
+    ];
+    const ending = endings[Math.floor(Math.random() * endings.length)];
+    return `${starter} ${transformed} ${ending}`;
   }
 
   if (mode === 'cheerleader') {
