@@ -435,8 +435,8 @@ export default function App() {
         .insert([{
           id: uid,
           email: userEmail,
-          is_admin: false,
-          has_upgraded: false
+          is_admin: isRod,
+          has_upgraded: isRod
         }])
         .select()
         .maybeSingle();
@@ -444,14 +444,9 @@ export default function App() {
       if (!error && data) {
         console.log('Profile created:', data);
         setProfile(data);
-        if (isRod) {
-          setIsAdmin(true);
-          setIsPremium(true);
-          console.log('Admin access granted for Rod');
-        } else {
-          setIsAdmin(data.is_admin === true);
-          setIsPremium(data.has_upgraded === true);
-        }
+        setIsAdmin(data.is_admin === true);
+        setIsPremium(data.has_upgraded === true);
+        console.log('Admin status:', data.is_admin, 'Premium status:', data.has_upgraded);
       } else if (error) {
         console.error('Profile creation error:', error);
       }
@@ -499,14 +494,23 @@ export default function App() {
             }
             setIsAuthenticating(false);
           } else if (signUpData.user) {
+            setUser(signUpData.user);
             const userEmail = signUpData.user.email;
             const isRod = userEmail === 'rod.puliceno@gmail.com';
+
+            // For Rod, immediately set admin state
             if (isRod) {
               setIsAdmin(true);
               setIsPremium(true);
-              console.log('Admin access granted immediately for Rod');
+              console.log('Admin access granted immediately for Rod on signup');
             }
+
             await fetchProfile(signUpData.user.id);
+
+            // Force refresh profile after a short delay to ensure DB trigger has run
+            setTimeout(async () => {
+              await fetchProfile(signUpData.user.id);
+            }, 500);
           }
         } else {
           alert(signInErr.message);
@@ -515,12 +519,21 @@ export default function App() {
       } else if (data.user) {
         setUser(data.user);
         const isRod = data.user.email === 'rod.puliceno@gmail.com';
+
+        // For Rod, immediately set admin state
         if (isRod) {
           setIsAdmin(true);
           setIsPremium(true);
           console.log('Admin access granted immediately for Rod on sign in');
         }
+
         await fetchProfile(data.user.id);
+
+        // Force refresh profile after a short delay
+        setTimeout(async () => {
+          await fetchProfile(data.user.id);
+        }, 500);
+
         setIsAuthenticating(false);
       }
     } catch (error) {
