@@ -200,7 +200,8 @@ function getTaskTranslation(task: string, mode: string): string {
   };
 
   if (mode === 'standard') {
-    return `Execute the following objective: ${task}.`;
+    const capitalizedTask = task.charAt(0).toUpperCase() + task.slice(1);
+    return `Task logged. Proceed with: ${capitalizedTask}`;
   }
 
   const mapping = keywordMappings[mode] || {};
@@ -208,6 +209,15 @@ function getTaskTranslation(task: string, mode: string): string {
   const actions = actionPhrases[mode] || {};
 
   let transformed = task.toLowerCase();
+
+  // Preserve proper names by finding capitalized words in original
+  const properNouns: string[] = [];
+  const words = task.split(/\s+/);
+  words.forEach(word => {
+    if (word.length > 0 && word[0] === word[0].toUpperCase() && word[0] !== word[0].toLowerCase()) {
+      properNouns.push(word);
+    }
+  });
 
   Object.entries(actions).forEach(([phrase, replacement]) => {
     const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
@@ -217,6 +227,12 @@ function getTaskTranslation(task: string, mode: string): string {
   Object.entries(mapping).forEach(([word, replacement]) => {
     const regex = new RegExp(`\\b${word}\\b`, 'gi');
     transformed = transformed.replace(regex, replacement);
+  });
+
+  // Restore proper nouns with original capitalization
+  properNouns.forEach(noun => {
+    const regex = new RegExp(`\\b${noun}\\b`, 'gi');
+    transformed = transformed.replace(regex, noun);
   });
 
   const starter = starters[Math.floor(Math.random() * starters.length)] || '';
@@ -542,7 +558,6 @@ export default function App() {
                   className="border border-white/10 p-5 flex justify-between items-start group"
                 >
                   <div className="flex-1">
-                    <div className="text-[9px] text-white/30 font-mono mb-2 uppercase">{t.original_task}</div>
                     <div className="text-sm leading-relaxed">{t.translated_text}</div>
                   </div>
                   <div className="flex gap-2 ml-4">
