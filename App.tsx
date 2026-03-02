@@ -140,20 +140,20 @@ function getTaskTranslation(task: string, mode: string): string {
       finish: "close out"
     },
     cheerleader: {
-      milk: "calcium power fuel",
-      gym: "vitality session",
-      work: "success mission",
-      sleep: "dream achievement time",
-      email: "amazing message",
-      buy: "score",
-      get: "WIN",
-      go: "ROCK",
-      meeting: "power huddle",
-      report: "victory document",
-      call: "connect",
-      send: "blast",
-      clean: "sparkle up",
-      finish: "NAIL IT"
+      milk: "divine elixir",
+      gym: "the Vitality Shrine",
+      work: "building your empire",
+      sleep: "your beauty restoration ritual",
+      email: "iconic correspondence",
+      buy: "manifest",
+      get: "absolutely SLAY",
+      go: "grace with your presence",
+      meeting: "power circle",
+      report: "masterpiece",
+      call: "connect with",
+      send: "deliver fabulousness to",
+      clean: "bless this space",
+      finish: "absolutely DEVOUR"
     }
   };
 
@@ -161,7 +161,7 @@ function getTaskTranslation(task: string, mode: string): string {
     pirate: ["ARRR!", "AVAST!", "SHIVER ME TIMBERS!", "BLOW ME DOWN!"],
     shakespeare: ["Hark!", "Lo!", "Verily,", "Prithee,"],
     manager: ["PER Q4 GUIDELINES:", "ACTION REQUIRED:", "FYI:", "URGENT:"],
-    cheerleader: ["OMG!", "WOW!", "YES!", "YOU GOT THIS!"]
+    cheerleader: ["Umm, excuse me?!", "ICONIC!", "Main character energy!", "Listen bestie,"]
   };
 
   const actionPhrases: Record<string, Record<string, string>> = {
@@ -190,12 +190,12 @@ function getTaskTranslation(task: string, mode: string): string {
       "have to": "is mandated to"
     },
     cheerleader: {
-      "i need to": "YOU'RE TOTALLY GONNA",
-      "i have to": "YOU GET TO",
-      "i should": "YOU'LL AMAZINGLY",
-      "i want to": "YOU'RE GONNA ROCK AT",
-      "need to": "get to",
-      "have to": "are BLESSED to"
+      "i need to": "you are going to go",
+      "i have to": "you GET to go",
+      "i should": "you will absolutely",
+      "i want to": "you're going to",
+      "need to": "are going to",
+      "have to": "GET to"
     }
   };
 
@@ -253,8 +253,10 @@ function getTaskTranslation(task: string, mode: string): string {
   }
 
   if (mode === 'cheerleader') {
-    transformed = transformed.toUpperCase();
-    return `${starter} ${transformed}! YOU'RE GONNA CRUSH IT! 🎉`;
+    transformed = transformed.charAt(0).toUpperCase() + transformed.slice(1);
+    const endings = ["Slay, bestie! 💅✨", "That's iconic behavior! ✨", "Main character energy only! 💅", "Absolutely DEVOUR this! ✨💅"];
+    const ending = endings[Math.floor(Math.random() * endings.length)];
+    return `${starter} ${transformed} and give them absolute MAIN CHARACTER ENERGY! ${ending}`;
   }
 
   return `Execute the following objective: ${task}.`;
