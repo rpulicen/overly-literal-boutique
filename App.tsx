@@ -476,9 +476,11 @@ export default function App() {
   }
 
   async function loadGlobalTasks() {
+    if (!user) return;
     const { data } = await supabase
       .from('tasks')
       .select('*')
+      .eq('user_id', user.id)
       .eq('completed', true)
       .order('created_at', { ascending: false })
       .limit(10);
@@ -801,7 +803,7 @@ export default function App() {
       <div className="fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-[12px] border-t-2 border-[#D4AF37] z-[999] overflow-hidden" style={{ height: '60px' }}>
         <div className="h-full flex items-center">
           {globalTasks.length === 0 ? (
-            <div className="w-full text-center text-white/30 font-mono text-xs">The Chronicle is silent...</div>
+            <div className="w-full text-center text-white/30 font-mono text-xs">Your ledger is clear. Complete a burden to see it join the scroll.</div>
           ) : (
             <div className="whitespace-nowrap marquee-content flex items-center gap-6 px-8">
               {[...globalTasks, ...globalTasks].map((t, idx) => (
