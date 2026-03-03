@@ -6,6 +6,12 @@
   body {
     @apply bg-black antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  body::-webkit-scrollbar {
+    display: none;
   }
 
   * {
@@ -15,6 +21,21 @@
 
   *::-webkit-scrollbar {
     display: none;
+  }
+
+  div[style*="overflowY: auto"],
+  div[style*="overflow-y: auto"],
+  .overflow-y-auto,
+  [class*="overflow"] {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  div[style*="overflowY: auto"]::-webkit-scrollbar,
+  div[style*="overflow-y: auto"]::-webkit-scrollbar,
+  .overflow-y-auto::-webkit-scrollbar,
+  [class*="overflow"]::-webkit-scrollbar {
+    display: none !important;
   }
 }
 

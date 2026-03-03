@@ -168,6 +168,44 @@ function getTaskTranslation(task: string, mode: string): string {
       do: "handle",
       tax: "taxes",
       taxes: "those taxes like the boss you are"
+    },
+    wellness: {
+      milk: "sacred bovine nectar",
+      gym: "the Temple of Physical Transcendence",
+      work: "your karmic obligations",
+      sleep: "the divine rest ritual",
+      email: "digital energy exchanges",
+      buy: "consciously acquire",
+      get: "manifest into your reality",
+      go: "journey mindfully to",
+      meeting: "sacred circle gathering",
+      report: "wisdom scroll",
+      call: "connect energetically with",
+      send: "transmit positive vibrations to",
+      clean: "purify and cleanse",
+      finish: "bring to sacred completion",
+      do: "honor the universe by embracing",
+      tax: "fiscal karma",
+      taxes: "those tax obligations on your spiritual journey"
+    },
+    motivational: {
+      milk: "CHAMPION'S FUEL",
+      gym: "THE VICTORY FORGE",
+      work: "YOUR LEGACY BUILDING",
+      sleep: "RECOVERY MODE FOR CHAMPIONS",
+      email: "MISSION-CRITICAL COMMUNICATIONS",
+      buy: "INVEST IN",
+      get: "DOMINATE",
+      go: "CRUSH IT AT",
+      meeting: "POWER SESSION",
+      report: "VICTORY DOCUMENT",
+      call: "CONNECT WITH YOUR WINNING TEAM AT",
+      send: "DELIVER EXCELLENCE TO",
+      clean: "OPTIMIZE",
+      finish: "ABSOLUTELY DESTROY",
+      do: "CONQUER",
+      tax: "TAXES",
+      taxes: "THOSE TAXES LIKE THE CHAMPION YOU ARE"
     }
   };
 
@@ -175,7 +213,9 @@ function getTaskTranslation(task: string, mode: string): string {
     pirate: ["ARRR, matey!", "AVAST, ye scallywag!", "SHIVER ME TIMBERS!", "BLOW ME DOWN!", "BY BLACKBEARD'S BEARD!"],
     shakespeare: ["Hark!", "Lo, what torment awaits!", "Verily, the hour is upon thee!", "Prithee,", "Alas!", "Forsooth!"],
     manager: ["RE: URGENT -", "PER MY LAST EMAIL:", "ACTION REQUIRED:", "FYI -", "CIRCLING BACK:", "LOOPING YOU IN:"],
-    cheerleader: ["Umm, excuse me?!", "ICONIC!", "Main character energy!", "Listen bestie,"]
+    cheerleader: ["Umm, excuse me?!", "ICONIC!", "Main character energy!", "Listen bestie,"],
+    wellness: ["Breathe in, breathe out.", "Center yourself, beloved soul.", "The universe whispers:", "Namaste, dear one.", "In this sacred moment,"],
+    motivational: ["LISTEN UP, CHAMPION!", "YOU'VE GOT THIS!", "WINNERS NEVER QUIT!", "THIS IS YOUR MOMENT!", "GREATNESS AWAITS!"]
   };
 
   const actionPhrases: Record<string, Record<string, string>> = {
@@ -215,6 +255,24 @@ function getTaskTranslation(task: string, mode: string): string {
       "have to": "GET to",
       "go to": "grace with your presence",
       "go to the": "grace with your presence at"
+    },
+    wellness: {
+      "i need to": "you are called to",
+      "i have to": "the universe invites you to",
+      "i should": "your inner wisdom guides you to",
+      "i want to": "your soul yearns to",
+      "need to": "are guided to",
+      "have to": "are blessed with the opportunity to",
+      "going to": "will mindfully journey to"
+    },
+    motivational: {
+      "i need to": "YOU WILL",
+      "i have to": "YOU GET TO",
+      "i should": "YOU MUST",
+      "i want to": "YOU'RE GOING TO",
+      "need to": "MUST",
+      "have to": "GET TO",
+      "going to": "WILL DOMINATE"
     }
   };
 
@@ -314,6 +372,36 @@ function getTaskTranslation(task: string, mode: string): string {
     return `${starter} ${transformed} and give them absolute MAIN CHARACTER ENERGY! ${ending}`;
   }
 
+  if (mode === 'wellness') {
+    transformed = transformed.replace(/\bwhile you\b/gi, 'as you');
+    transformed = transformed.replace(/\band and\b/gi, 'and');
+
+    transformed = transformed.charAt(0).toUpperCase() + transformed.slice(1);
+    const endings = [
+      "This is a sacred journey of renewal. Namaste.",
+      "Honor this moment with mindful presence.",
+      "May your energy flow with grace and intention.",
+      "You are exactly where the universe needs you to be."
+    ];
+    const ending = endings[Math.floor(Math.random() * endings.length)];
+    return `${starter} ${transformed}. ${ending}`;
+  }
+
+  if (mode === 'motivational') {
+    transformed = transformed.replace(/\bwhile you\b/gi, 'AS YOU');
+    transformed = transformed.replace(/\band and\b/gi, 'AND');
+
+    transformed = transformed.toUpperCase();
+    const endings = [
+      "VISUALIZE THE WIN!",
+      "NO EXCUSES, ONLY RESULTS!",
+      "THIS IS YOUR CHAMPIONSHIP MOMENT!",
+      "DOMINATE TODAY!"
+    ];
+    const ending = endings[Math.floor(Math.random() * endings.length)];
+    return `${starter} ${transformed}! ${ending}`;
+  }
+
   return `Execute the following objective: ${task}.`;
 }
 
@@ -332,6 +420,8 @@ export default function App() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [globalTasks, setGlobalTasks] = useState<Task[]>([]);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [justCompletedId, setJustCompletedId] = useState<string | null>(null);
 
   useEffect(() => {
     checkSession();
@@ -545,6 +635,10 @@ export default function App() {
 
   async function addTask() {
     if (!taskInput || !user) return;
+    setIsTranslating(true);
+
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     const newTask = {
       user_id: user.id,
       original_task: taskInput,
@@ -556,10 +650,12 @@ export default function App() {
     if (error) {
       console.error('Task insert error:', error);
       alert("Error adding task: " + error.message);
+      setIsTranslating(false);
     } else if (data) {
       console.log('Task added:', data);
       setTasks([data, ...tasks]);
       setTaskInput('');
+      setIsTranslating(false);
 
       // Update streak
       await updateStreak();
@@ -592,6 +688,12 @@ export default function App() {
     if (!task) return;
 
     const newCompletedState = !task.completed;
+
+    if (newCompletedState) {
+      setJustCompletedId(taskId);
+      setTimeout(() => setJustCompletedId(null), 1000);
+    }
+
     await supabase.from('tasks').update({ completed: newCompletedState }).eq('id', taskId);
     await loadTasks();
     await loadGlobalTasks();
@@ -683,7 +785,9 @@ export default function App() {
               { key: 'pirate', emoji: '🏴‍☠️', label: 'PIRATE' },
               { key: 'shakespeare', emoji: '🎭', label: 'SHAKESPEARE' },
               { key: 'manager', emoji: '💼', label: 'MANAGER' },
-              { key: 'cheerleader', emoji: '📣', label: 'CHEERLEADER' }
+              { key: 'cheerleader', emoji: '📣', label: 'CHEERLEADER' },
+              { key: 'wellness', emoji: '🌿', label: 'WELLNESS GURU' },
+              { key: 'motivational', emoji: '💪', label: 'MOTIVATIONAL COACH' }
             ].map(({ key, emoji, label }) => {
               const isLocked = key !== 'standard' && !isPremium;
               const isActive = mode === key;
@@ -708,8 +812,31 @@ export default function App() {
           {showAdminPanel && <AdminPanel />}
 
           <div className="flex gap-4 mb-8">
-            <input value={taskInput} onChange={e => setTaskInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTask()} placeholder="Describe the burden..." className="flex-1 bg-transparent border-b border-white/20 py-2 font-mono text-sm focus:outline-none" />
-            <button onClick={addTask} className="border border-white/40 px-8 py-2 hover:bg-white hover:text-black transition-all"><Plus size={18} /></button>
+            <input
+              value={taskInput}
+              onChange={e => setTaskInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && !isTranslating && addTask()}
+              placeholder="Describe the burden..."
+              className="flex-1 bg-transparent border-b border-white/20 py-2 font-mono text-sm focus:outline-none"
+              disabled={isTranslating}
+            />
+            <button
+              onClick={addTask}
+              disabled={isTranslating}
+              className="border border-white/40 px-8 py-2 hover:bg-white hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isTranslating ? (
+                <motion.div
+                  className="text-[#D4AF37] font-mono text-[9px] tracking-widest"
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  CURATING VIBES...
+                </motion.div>
+              ) : (
+                <Plus size={18} />
+              )}
+            </button>
           </div>
 
           <div className="mb-4">
@@ -727,10 +854,10 @@ export default function App() {
                     {tasks.map(t => (
                       <motion.div
                         key={t.id}
-                        initial={{ opacity: 0, x: -20, height: 0 }}
-                        animate={{ opacity: 1, x: 0, height: 'auto' }}
+                        initial={{ opacity: 0, x: -20, height: 0, filter: 'blur(8px)' }}
+                        animate={{ opacity: 1, x: 0, height: 'auto', filter: 'blur(0px)' }}
                         exit={{ opacity: 0, x: 20, height: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        transition={{ duration: 0.4, ease: 'easeOut' }}
                         className="border border-white/10 p-5 flex justify-between items-start group relative"
                         style={{ opacity: t.completed ? 0.4 : 1 }}
                       >
@@ -745,8 +872,11 @@ export default function App() {
                           >
                             THE BURDEN: {t.original_task}
                           </div>
-                          <div
+                          <motion.div
                             className="text-sm leading-relaxed relative"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
                             style={{
                               textDecoration: t.completed ? 'line-through' : 'none',
                               textDecorationColor: '#4ade80',
@@ -754,7 +884,21 @@ export default function App() {
                             }}
                           >
                             {t.translated_text}
-                          </div>
+                          </motion.div>
+                          {justCompletedId === t.id && (
+                            <motion.div
+                              className="absolute inset-0 pointer-events-none"
+                              initial={{ scaleX: 0, originX: 0 }}
+                              animate={{ scaleX: 1 }}
+                              transition={{ duration: 0.6, ease: 'easeInOut' }}
+                              style={{
+                                background: 'linear-gradient(90deg, rgba(74,222,128,0.3) 0%, rgba(74,222,128,0) 100%)',
+                                height: '2px',
+                                top: '50%',
+                                zIndex: 10
+                              }}
+                            />
+                          )}
                         </div>
                         <div className="flex gap-2 ml-4">
                           <button
@@ -800,14 +944,28 @@ export default function App() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-[12px] border-t-2 border-[#D4AF37] z-[999] overflow-hidden" style={{ height: '60px' }}>
+      <div className="fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-[12px] border-t-2 border-[#D4AF37] z-[999] overflow-hidden group/ticker" style={{ height: '60px' }}>
         <div className="h-full flex items-center">
           {globalTasks.length === 0 ? (
             <div className="w-full text-center text-white/30 font-mono text-xs">Your ledger is clear. Complete a burden to see it join the scroll.</div>
           ) : (
-            <div className="whitespace-nowrap marquee-content flex items-center gap-6 px-8">
+            <div className="whitespace-nowrap marquee-content flex items-center gap-6 px-8 group-hover/ticker:[animation-play-state:paused]">
               {[...globalTasks, ...globalTasks].map((t, idx) => (
-                <div key={`${t.id}-${idx}`} className="inline-flex items-center gap-3">
+                <motion.div
+                  key={`${t.id}-${idx}`}
+                  className="inline-flex items-center gap-3 cursor-pointer"
+                  whileHover={{ scale: 1.05 }}
+                  animate={{
+                    filter: ['drop-shadow(0 0 0px rgba(212,175,55,0))', 'drop-shadow(0 0 8px rgba(212,175,55,0.6))', 'drop-shadow(0 0 0px rgba(212,175,55,0))']
+                  }}
+                  transition={{
+                    filter: {
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'easeInOut'
+                    }
+                  }}
+                >
                   <span className="text-[11px] text-[#D4AF37] font-serif tracking-wide">
                     {t.original_task}
                   </span>
@@ -815,7 +973,7 @@ export default function App() {
                     {t.translated_text}
                   </span>
                   <span className="text-[#D4AF37] text-xs">◆</span>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
