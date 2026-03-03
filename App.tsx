@@ -631,7 +631,7 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 h-screen overflow-hidden flex flex-col bg-black text-white">
-      <div className="flex-1 overflow-y-auto p-8 pb-[220px]">
+      <div className="flex-1 overflow-y-auto p-8 pb-[80px]">
         <div className="max-w-2xl mx-auto">
           <div className="flex justify-between items-center mb-16">
             <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
@@ -762,27 +762,25 @@ export default function App() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-[12px] border-t-2 border-[#D4AF37] z-[999]" style={{ height: '200px' }}>
-        <div className="h-full flex flex-col p-6">
-          <h2 className="font-serif text-sm text-[#D4AF37] tracking-wider mb-4 text-center">THE GLOBAL CHRONICLE</h2>
-          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4">
-            {globalTasks.length === 0 ? (
-              <div className="text-center py-8 text-white/30 font-mono text-xs">The Chronicle is silent...</div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {globalTasks.map(t => (
-                  <div key={t.id} className="h-20 flex-shrink-0 border border-[#D4AF37]/30 bg-black/60 p-3 flex flex-col justify-between">
-                    <div className="text-[10px] text-[#D4AF37]/80 font-serif tracking-wide uppercase truncate">
-                      {t.original_task}
-                    </div>
-                    <div className="text-xs text-white/90 font-mono leading-tight line-clamp-2">
-                      {t.translated_text}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+      <div className="fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-[12px] border-t-2 border-[#D4AF37] z-[999] overflow-hidden" style={{ height: '60px' }}>
+        <div className="h-full flex items-center">
+          {globalTasks.length === 0 ? (
+            <div className="w-full text-center text-white/30 font-mono text-xs">The Chronicle is silent...</div>
+          ) : (
+            <div className="whitespace-nowrap marquee-content flex gap-8 px-8">
+              {[...globalTasks, ...globalTasks].map((t, idx) => (
+                <div key={`${t.id}-${idx}`} className="inline-flex items-center gap-3">
+                  <span className="text-[10px] text-[#D4AF37]/80 font-serif tracking-wide uppercase">
+                    {t.original_task}
+                  </span>
+                  <span className="text-white/30">•</span>
+                  <span className="text-xs text-white/90 font-mono">
+                    {t.translated_text}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

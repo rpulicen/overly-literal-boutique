@@ -7,6 +7,15 @@
     @apply bg-black antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
+
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes progress-boutique {
@@ -80,4 +89,17 @@
 .premium-card > * {
   position: relative;
   z-index: 2;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.marquee-content {
+  animation: marquee 30s linear infinite;
 }
