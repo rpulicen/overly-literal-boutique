@@ -471,7 +471,6 @@ export default function App() {
     const { data } = await supabase
       .from('tasks')
       .select('*')
-      .eq('completed', false)
       .order('created_at', { ascending: false });
     if (data) setTasks(data);
   }
@@ -586,8 +585,12 @@ export default function App() {
     }
   }
 
-  async function completeTask(taskId: string) {
-    await supabase.from('tasks').update({ completed: true }).eq('id', taskId);
+  async function toggleComplete(taskId: string) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const newCompletedState = !task.completed;
+    await supabase.from('tasks').update({ completed: newCompletedState }).eq('id', taskId);
     await loadTasks();
     await loadGlobalTasks();
   }
@@ -595,6 +598,7 @@ export default function App() {
   async function deleteTask(taskId: string) {
     await supabase.from('tasks').delete().eq('id', taskId);
     await loadTasks();
+    await loadGlobalTasks();
   }
 
   async function copyToClipboard(text: string, taskId: string) {
@@ -725,17 +729,40 @@ export default function App() {
                         animate={{ opacity: 1, x: 0, height: 'auto' }}
                         exit={{ opacity: 0, x: 20, height: 0 }}
                         transition={{ duration: 0.3, ease: 'easeOut' }}
-                        className="border border-white/10 p-5 flex justify-between items-start group"
+                        className="border border-white/10 p-5 flex justify-between items-start group relative"
+                        style={{ opacity: t.completed ? 0.4 : 1 }}
                       >
-                        <div className="flex-1">
-                          <div className="text-xs text-white/40 font-mono mb-2">THE BURDEN: {t.original_task}</div>
-                          <div className="text-sm leading-relaxed">{t.translated_text}</div>
+                        <div className="flex-1 relative">
+                          <div
+                            className="text-xs text-white/40 font-mono mb-2 relative"
+                            style={{
+                              textDecoration: t.completed ? 'line-through' : 'none',
+                              textDecorationColor: '#4ade80',
+                              textDecorationThickness: '2px'
+                            }}
+                          >
+                            THE BURDEN: {t.original_task}
+                          </div>
+                          <div
+                            className="text-sm leading-relaxed relative"
+                            style={{
+                              textDecoration: t.completed ? 'line-through' : 'none',
+                              textDecorationColor: '#4ade80',
+                              textDecorationThickness: '2px'
+                            }}
+                          >
+                            {t.translated_text}
+                          </div>
                         </div>
                         <div className="flex gap-2 ml-4">
                           <button
-                            onClick={() => completeTask(t.id)}
-                            className="text-white/5 group-hover:text-white/40 hover:text-green-400 p-1 transition-colors"
-                            title="Mark complete"
+                            onClick={() => toggleComplete(t.id)}
+                            className={`p-1 transition-colors ${
+                              t.completed
+                                ? 'text-[#4ade80]'
+                                : 'text-white/5 group-hover:text-white/40 hover:text-[#4ade80]'
+                            }`}
+                            title="Toggle complete"
                           >
                             <Check size={14} />
                           </button>
@@ -756,7 +783,7 @@ export default function App() {
                           <button
                             onClick={() => deleteTask(t.id)}
                             className="text-white/5 group-hover:text-white/40 hover:text-red-400 p-1 transition-colors"
-                            title="Delete task"
+                            title="Delete permanently"
                           >
                             <Trash2 size={14} />
                           </button>
