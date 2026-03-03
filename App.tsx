@@ -630,133 +630,156 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 font-sans">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-16">
-          <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
-          <div className="flex gap-4 items-center">
-            {profile && (
-              <motion.div
-                key={profile.streak_count}
-                initial={{ scale: 1 }}
-                animate={{ scale: [1, 1.3, 1] }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-                className="flex items-center gap-2 px-3 py-1 border border-orange-500/30 bg-orange-500/5"
-              >
-                <span className="font-mono text-sm font-bold text-orange-400">{profile.streak_count}</span>
-                <span className="font-mono text-xs text-orange-400/60">DAY STREAK</span>
-                <motion.span
-                  key={`fire-${profile.streak_count}`}
-                  initial={{ scale: 1 }}
-                  animate={{ scale: [1, 1.5, 1] }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="text-base"
-                >
-                  🔥
-                </motion.span>
-              </motion.div>
-            )}
-            {isAdmin && <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="text-[#00FF41] font-mono text-[10px] border border-[#00FF41] px-2 py-1 hover:bg-[#00FF41] hover:text-black transition-all">ADMIN</button>}
-            <button onClick={() => supabase.auth.signOut()} className="text-white/30 hover:text-white"><LogOut size={20} /></button>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2 mb-8">
-          {[
-            { key: 'standard', emoji: '📋', label: 'STANDARD' },
-            { key: 'pirate', emoji: '🏴‍☠️', label: 'PIRATE' },
-            { key: 'shakespeare', emoji: '🎭', label: 'SHAKESPEARE' },
-            { key: 'manager', emoji: '💼', label: 'MANAGER' },
-            { key: 'cheerleader', emoji: '📣', label: 'CHEERLEADER' }
-          ].map(({ key, emoji, label }) => {
-            const isLocked = key !== 'standard' && !isPremium;
-            const isActive = mode === key;
-            return (
-              <button
-                key={key}
-                onClick={() => isLocked ? alert("Upgrade required") : setMode(key)}
-                className={`px-4 py-2 text-[9px] font-mono border transition-all flex items-center gap-2 ${
-                  isActive
-                    ? 'border-white bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]'
-                    : 'border-white/10 text-white/30 hover:border-white/30'
-                }`}
-              >
-                <span className="text-sm">{emoji}</span>
-                {label}
-                {isLocked && <Lock size={10} />}
-              </button>
-            );
-          })}
-        </div>
-
-        {showAdminPanel && <AdminPanel />}
-
-        <div className="flex gap-4 mb-16">
-          <input value={taskInput} onChange={e => setTaskInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTask()} placeholder="Describe the burden..." className="flex-1 bg-transparent border-b border-white/20 py-2 font-mono text-sm focus:outline-none" />
-          <button onClick={addTask} className="border border-white/40 px-8 py-2 hover:bg-white hover:text-black transition-all"><Plus size={18} /></button>
-        </div>
-
-        {tasks.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-20"
-          >
-            <div className="text-6xl mb-4">✨</div>
-            <div className="text-xl text-white/50 font-mono">No burdens?</div>
-            <div className="text-3xl text-white font-bold mt-2">You're living the dream!</div>
-          </motion.div>
-        ) : (
-          <div className="space-y-6">
-            <AnimatePresence mode="popLayout">
-              {tasks.map(t => (
+    <div className="fixed inset-0 h-screen overflow-hidden flex flex-col bg-black text-white">
+      <div className="flex-1 overflow-y-auto p-8 pb-[220px]">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex justify-between items-center mb-16">
+            <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
+            <div className="flex gap-4 items-center">
+              {profile && (
                 <motion.div
-                  key={t.id}
-                  initial={{ opacity: 0, x: -20, height: 0 }}
-                  animate={{ opacity: 1, x: 0, height: 'auto' }}
-                  exit={{ opacity: 0, x: 20, height: 0 }}
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
-                  className="border border-white/10 p-5 flex justify-between items-start group"
+                  key={profile.streak_count}
+                  initial={{ scale: 1 }}
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="flex items-center gap-2 px-3 py-1 border border-orange-500/30 bg-orange-500/5"
                 >
-                  <div className="flex-1">
-                    <div className="text-xs text-white/40 font-mono mb-2">THE BURDEN: {t.original_task}</div>
-                    <div className="text-sm leading-relaxed">{t.translated_text}</div>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => completeTask(t.id)}
-                      className="text-white/5 group-hover:text-white/40 hover:text-green-400 p-1 transition-colors"
-                      title="Mark complete"
-                    >
-                      <Check size={14} />
-                    </button>
-                    <button
-                      onClick={() => copyToClipboard(t.translated_text, t.id)}
-                      className="text-white/5 group-hover:text-white/40 hover:text-white p-1 transition-colors"
-                      title="Copy to clipboard"
-                    >
-                      {copiedId === t.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
-                    </button>
-                    <button
-                      onClick={() => shareToX(t.translated_text, t.id)}
-                      className="text-white/5 group-hover:text-white/40 hover:text-blue-400 p-1 transition-colors"
-                      title="Share to X"
-                    >
-                      <Share2 size={14} />
-                    </button>
-                    <button
-                      onClick={() => deleteTask(t.id)}
-                      className="text-white/5 group-hover:text-white/40 hover:text-red-400 p-1 transition-colors"
-                      title="Delete task"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                  <span className="font-mono text-sm font-bold text-orange-400">{profile.streak_count}</span>
+                  <span className="font-mono text-xs text-orange-400/60">DAY STREAK</span>
+                  <motion.span
+                    key={`fire-${profile.streak_count}`}
+                    initial={{ scale: 1 }}
+                    animate={{ scale: [1, 1.5, 1] }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="text-base"
+                  >
+                    🔥
+                  </motion.span>
                 </motion.div>
-              ))}
-            </AnimatePresence>
+              )}
+              {isAdmin && <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="text-[#00FF41] font-mono text-[10px] border border-[#00FF41] px-2 py-1 hover:bg-[#00FF41] hover:text-black transition-all">ADMIN</button>}
+              <button onClick={() => supabase.auth.signOut()} className="text-white/30 hover:text-white"><LogOut size={20} /></button>
+            </div>
           </div>
-        )}
+
+          <div className="flex flex-wrap gap-2 mb-8">
+            {[
+              { key: 'standard', emoji: '📋', label: 'STANDARD' },
+              { key: 'pirate', emoji: '🏴‍☠️', label: 'PIRATE' },
+              { key: 'shakespeare', emoji: '🎭', label: 'SHAKESPEARE' },
+              { key: 'manager', emoji: '💼', label: 'MANAGER' },
+              { key: 'cheerleader', emoji: '📣', label: 'CHEERLEADER' }
+            ].map(({ key, emoji, label }) => {
+              const isLocked = key !== 'standard' && !isPremium;
+              const isActive = mode === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => isLocked ? alert("Upgrade required") : setMode(key)}
+                  className={`px-4 py-2 text-[9px] font-mono border transition-all flex items-center gap-2 ${
+                    isActive
+                      ? 'border-white bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]'
+                      : 'border-white/10 text-white/30 hover:border-white/30'
+                  }`}
+                >
+                  <span className="text-sm">{emoji}</span>
+                  {label}
+                  {isLocked && <Lock size={10} />}
+                </button>
+              );
+            })}
+          </div>
+
+          {showAdminPanel && <AdminPanel />}
+
+          <div className="flex gap-4 mb-8">
+            <input value={taskInput} onChange={e => setTaskInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTask()} placeholder="Describe the burden..." className="flex-1 bg-transparent border-b border-white/20 py-2 font-mono text-sm focus:outline-none" />
+            <button onClick={addTask} className="border border-white/40 px-8 py-2 hover:bg-white hover:text-black transition-all"><Plus size={18} /></button>
+          </div>
+
+          <div className="mb-4">
+            <h2 className="font-mono text-xs text-white/50 tracking-widest mb-4">MY BURDENS</h2>
+            <div style={{ height: '400px', overflowY: 'auto' }} className="border border-white/10 p-4">
+              {tasks.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="text-6xl mb-4">✨</div>
+                  <div className="text-xl text-white/50 font-mono">No burdens?</div>
+                  <div className="text-3xl text-white font-bold mt-2">You're living the dream!</div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <AnimatePresence mode="popLayout">
+                    {tasks.map(t => (
+                      <motion.div
+                        key={t.id}
+                        initial={{ opacity: 0, x: -20, height: 0 }}
+                        animate={{ opacity: 1, x: 0, height: 'auto' }}
+                        exit={{ opacity: 0, x: 20, height: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        className="border border-white/10 p-5 flex justify-between items-start group"
+                      >
+                        <div className="flex-1">
+                          <div className="text-xs text-white/40 font-mono mb-2">THE BURDEN: {t.original_task}</div>
+                          <div className="text-sm leading-relaxed">{t.translated_text}</div>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => completeTask(t.id)}
+                            className="text-white/5 group-hover:text-white/40 hover:text-green-400 p-1 transition-colors"
+                            title="Mark complete"
+                          >
+                            <Check size={14} />
+                          </button>
+                          <button
+                            onClick={() => copyToClipboard(t.translated_text, t.id)}
+                            className="text-white/5 group-hover:text-white/40 hover:text-white p-1 transition-colors"
+                            title="Copy to clipboard"
+                          >
+                            {copiedId === t.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                          </button>
+                          <button
+                            onClick={() => shareToX(t.translated_text, t.id)}
+                            className="text-white/5 group-hover:text-white/40 hover:text-blue-400 p-1 transition-colors"
+                            title="Share to X"
+                          >
+                            <Share2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => deleteTask(t.id)}
+                            className="text-white/5 group-hover:text-white/40 hover:text-red-400 p-1 transition-colors"
+                            title="Delete task"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 bg-black border-t-2 border-[#D4AF37] z-[999]" style={{ height: '200px' }}>
+        <div className="max-w-2xl mx-auto h-full flex flex-col p-4">
+          <h2 className="font-mono text-xs text-[#D4AF37] tracking-widest mb-3">THE GLOBAL CHRONICLE</h2>
+          <div className="flex-1 overflow-y-auto">
+            {globalTasks.length === 0 ? (
+              <div className="text-center py-8 text-white/30 font-mono text-xs">The Chronicle is silent...</div>
+            ) : (
+              <div className="space-y-2">
+                {globalTasks.map(t => (
+                  <div key={t.id} className="border border-[#D4AF37]/20 p-3 bg-[#D4AF37]/5">
+                    <div className="text-[10px] text-[#D4AF37]/60 font-mono mb-1">BURDEN: {t.original_task}</div>
+                    <div className="text-xs text-white/70">{t.translated_text}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
