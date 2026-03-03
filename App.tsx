@@ -331,6 +331,7 @@ export default function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [globalTasks, setGlobalTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     checkSession();
@@ -460,12 +461,29 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (user) loadTasks();
+    if (user) {
+      loadTasks();
+      loadGlobalTasks();
+    }
   }, [user]);
 
   async function loadTasks() {
-    const { data } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('completed', false)
+      .order('created_at', { ascending: false });
     if (data) setTasks(data);
+  }
+
+  async function loadGlobalTasks() {
+    const { data } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('completed', true)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    if (data) setGlobalTasks(data);
   }
 
   async function handleAuth(e: React.FormEvent) {
@@ -566,6 +584,17 @@ export default function App() {
         setProfile(updatedProfile);
       }
     }
+  }
+
+  async function completeTask(taskId: string) {
+    await supabase.from('tasks').update({ completed: true }).eq('id', taskId);
+    await loadTasks();
+    await loadGlobalTasks();
+  }
+
+  async function deleteTask(taskId: string) {
+    await supabase.from('tasks').delete().eq('id', taskId);
+    await loadTasks();
   }
 
   async function copyToClipboard(text: string, taskId: string) {
@@ -695,6 +724,13 @@ export default function App() {
                   </div>
                   <div className="flex gap-2 ml-4">
                     <button
+                      onClick={() => completeTask(t.id)}
+                      className="text-white/5 group-hover:text-white/40 hover:text-green-400 p-1 transition-colors"
+                      title="Mark complete"
+                    >
+                      <Check size={14} />
+                    </button>
+                    <button
                       onClick={() => copyToClipboard(t.translated_text, t.id)}
                       className="text-white/5 group-hover:text-white/40 hover:text-white p-1 transition-colors"
                       title="Copy to clipboard"
@@ -709,7 +745,7 @@ export default function App() {
                       <Share2 size={14} />
                     </button>
                     <button
-                      onClick={() => supabase.from('tasks').delete().eq('id', t.id).then(loadTasks)}
+                      onClick={() => deleteTask(t.id)}
                       className="text-white/5 group-hover:text-white/40 hover:text-red-400 p-1 transition-colors"
                       title="Delete task"
                     >
