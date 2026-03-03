@@ -762,18 +762,22 @@ export default function App() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-black border-t-2 border-[#D4AF37] z-[999]" style={{ height: '200px' }}>
-        <div className="max-w-2xl mx-auto h-full flex flex-col p-4">
-          <h2 className="font-mono text-xs text-[#D4AF37] tracking-widest mb-3">THE GLOBAL CHRONICLE</h2>
-          <div className="flex-1 overflow-y-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-[12px] border-t-2 border-[#D4AF37] z-[999]" style={{ height: '200px' }}>
+        <div className="h-full flex flex-col p-6">
+          <h2 className="font-serif text-sm text-[#D4AF37] tracking-wider mb-4 text-center">THE GLOBAL CHRONICLE</h2>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4">
             {globalTasks.length === 0 ? (
               <div className="text-center py-8 text-white/30 font-mono text-xs">The Chronicle is silent...</div>
             ) : (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-3">
                 {globalTasks.map(t => (
-                  <div key={t.id} className="border border-[#D4AF37]/20 p-3 bg-[#D4AF37]/5">
-                    <div className="text-[10px] text-[#D4AF37]/60 font-mono mb-1">BURDEN: {t.original_task}</div>
-                    <div className="text-xs text-white/70">{t.translated_text}</div>
+                  <div key={t.id} className="h-20 flex-shrink-0 border border-[#D4AF37]/30 bg-black/60 p-3 flex flex-col justify-between">
+                    <div className="text-[10px] text-[#D4AF37]/80 font-serif tracking-wide uppercase truncate">
+                      {t.original_task}
+                    </div>
+                    <div className="text-xs text-white/90 font-mono leading-tight line-clamp-2">
+                      {t.translated_text}
+                    </div>
                   </div>
                 ))}
               </div>
