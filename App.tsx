@@ -636,6 +636,15 @@ export default function App() {
           <div className="flex justify-between items-center mb-16">
             <h1 className="text-2xl font-bold tracking-tighter">OVERLY LITERAL</h1>
             <div className="flex gap-4 items-center">
+              <button
+                onClick={() => {
+                  localStorage.clear();
+                  window.location.reload();
+                }}
+                className="text-[#D4AF37] font-mono text-[9px] border border-[#D4AF37]/30 px-3 py-1 hover:bg-[#D4AF37] hover:text-black transition-all tracking-wider"
+              >
+                [RESET BOUTIQUE]
+              </button>
               {profile && (
                 <motion.div
                   key={profile.streak_count}
@@ -699,7 +708,7 @@ export default function App() {
 
           <div className="mb-4">
             <h2 className="font-mono text-xs text-white/50 tracking-widest mb-4">MY BURDENS</h2>
-            <div style={{ height: '400px', overflowY: 'auto' }} className="border border-white/10 p-4">
+            <div style={{ height: '400px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="border border-white/10 p-4">
               {tasks.length === 0 ? (
                 <div className="text-center py-20">
                   <div className="text-6xl mb-4">✨</div>
@@ -767,16 +776,16 @@ export default function App() {
           {globalTasks.length === 0 ? (
             <div className="w-full text-center text-white/30 font-mono text-xs">The Chronicle is silent...</div>
           ) : (
-            <div className="whitespace-nowrap marquee-content flex gap-8 px-8">
+            <div className="whitespace-nowrap marquee-content flex items-center gap-6 px-8">
               {[...globalTasks, ...globalTasks].map((t, idx) => (
                 <div key={`${t.id}-${idx}`} className="inline-flex items-center gap-3">
-                  <span className="text-[10px] text-[#D4AF37]/80 font-serif tracking-wide uppercase">
+                  <span className="text-[11px] text-[#D4AF37] font-serif tracking-wide">
                     {t.original_task}
                   </span>
-                  <span className="text-white/30">•</span>
-                  <span className="text-xs text-white/90 font-mono">
+                  <span className="text-white/90 font-mono text-sm">
                     {t.translated_text}
                   </span>
+                  <span className="text-[#D4AF37] text-xs">◆</span>
                 </div>
               ))}
             </div>
